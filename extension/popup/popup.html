@@ -176,27 +176,26 @@
         <div class="setting-row server-config-row">
           <div class="server-config-group">
             <span class="s-title">Inference Server URL</span><br>
-            <span class="s-desc">Local (<code>ws://127.0.0.1:8765</code>) or Remote Host IP</span>
+            <span class="s-desc">Cloud server connected by default</span>
             <div class="server-input-wrap">
-              <input type="text" id="input-server-url" class="server-input" placeholder="ws://127.0.0.1:8765"
+              <input type="text" id="input-server-url" class="server-input" placeholder="wss://netram-deepfake-detection.onrender.com"
                 spellcheck="false" />
               <button type="button" id="btn-save-server" class="btn-save-server">Save</button>
             </div>
             <div class="server-hints">
-              <span class="server-hint-chip" data-url="wss://netram-deepfake-detection.onrender.com">Render Cloud (Default)</span>
+              <span class="server-hint-chip" data-url="wss://netram-deepfake-detection.onrender.com">Cloud (Default)</span>
               <span class="server-hint-chip" data-url="ws://127.0.0.1:8765">Local PC</span>
-              <span class="server-hint-chip" data-url="ws://192.168.1.10:8765">LAN IP</span>
             </div>
           </div>
         </div>
 
         <!-- Connection Troubleshooter Box (shown when offline) -->
         <div class="troubleshoot-box" id="troubleshoot-box" style="display:none;">
-          <span class="tb-title">⚡ How to Connect from Another Laptop:</span>
+          <span class="tb-title">⚡ Connection Troubleshooting:</span>
           <ol class="tb-list">
-            <li>On your main laptop, run: <code>python extension_server.py</code></li>
-            <li>Find your main laptop IP (e.g. <code>192.168.1.5</code> via <code>ipconfig</code>).</li>
-            <li>On this laptop, set the Server URL to <code>ws://YOUR_MAIN_IP:8765</code> and click <b>Save</b>.</li>
+            <li>The cloud engine may be starting up — Render free-tier services sleep after inactivity. Please wait ~30 seconds and click <b>Sync</b>.</li>
+            <li>If still offline, check your internet connection and try refreshing the page.</li>
+            <li>For advanced users: you can run a local server and switch to <code>ws://127.0.0.1:8765</code> above.</li>
           </ol>
         </div>
       </section>

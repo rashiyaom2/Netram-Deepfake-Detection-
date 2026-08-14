@@ -255,16 +255,16 @@
         const ws = new WebSocket(url);
         ws.onopen = () => {
           dot.className = "conn-status-dot online";
-          label.textContent = `🟢 Engine Connected & Ready (${url})`;
+          label.textContent = `🟢 Cloud Engine Connected & Ready`;
           try { ws.close(); } catch (_) {}
         };
         ws.onerror = () => {
           dot.className = "conn-status-dot";
-          label.textContent = `⚪ Engine Offline (${url}) — Run 'start_server.bat' to activate`;
+          label.textContent = `⚪ Cloud engine starting up — please wait a moment and retry`;
         };
       } catch (_) {
         dot.className = "conn-status-dot";
-        label.textContent = `⚪ Engine Offline — Run 'start_server.bat' to activate`;
+        label.textContent = `⚪ Could not reach cloud engine — check your internet connection`;
       }
     }
   }
