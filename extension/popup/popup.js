@@ -19,7 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
   startDisplayLoop();
 });
 
-let configuredServerUrl = "ws://127.0.0.1:8765";
+const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.onrender.com";
+let configuredServerUrl = DEFAULT_CLOUD_URL;
 let reconnectTimer = null;
 let currentEndpointIdx = 0;
 
@@ -34,7 +35,7 @@ function loadSettings() {
         configuredServerUrl = r.serverUrl.trim();
         if (input) input.value = configuredServerUrl;
       } else {
-        if (input) input.value = "ws://127.0.0.1:8765";
+        if (input) input.value = DEFAULT_CLOUD_URL;
       }
     });
   }
@@ -118,6 +119,7 @@ function connectEngine() {
 
   const endpoints = [];
   if (configuredServerUrl) endpoints.push(configuredServerUrl);
+  if (!endpoints.includes(DEFAULT_CLOUD_URL)) endpoints.push(DEFAULT_CLOUD_URL);
   if (!endpoints.includes("ws://127.0.0.1:8765")) endpoints.push("ws://127.0.0.1:8765");
   if (!endpoints.includes("ws://localhost:8765")) endpoints.push("ws://localhost:8765");
 

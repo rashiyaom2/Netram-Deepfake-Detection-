@@ -9,7 +9,8 @@
  * - Smooth forensic metric updates & caution calibration notice
  */
 (() => {
-  let configuredServerUrl = "ws://127.0.0.1:8765";
+  const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.onrender.com";
+  let configuredServerUrl = DEFAULT_CLOUD_URL;
   let overlayEnabled = true;
   let endpointIdx = 0;
   const SAMPLE_MS = 300;       // ~3.3 FPS per participant
@@ -85,6 +86,7 @@
 
     const endpoints = [];
     if (configuredServerUrl) endpoints.push(configuredServerUrl);
+    if (!endpoints.includes(DEFAULT_CLOUD_URL)) endpoints.push(DEFAULT_CLOUD_URL);
     if (!endpoints.includes("ws://127.0.0.1:8765")) endpoints.push("ws://127.0.0.1:8765");
     if (!endpoints.includes("ws://localhost:8765")) endpoints.push("ws://localhost:8765");
 

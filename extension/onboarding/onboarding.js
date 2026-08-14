@@ -240,7 +240,7 @@
     const label = document.getElementById("conn-status-label");
     if (!dot || !label) return;
 
-    let targetUrl = "ws://127.0.0.1:8765";
+    let targetUrl = "wss://netram-deepfake-detection.onrender.com";
     if (chrome.storage?.local) {
       chrome.storage.local.get(["serverUrl"], (res) => {
         if (res.serverUrl && res.serverUrl.trim()) targetUrl = res.serverUrl.trim();
