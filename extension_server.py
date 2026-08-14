@@ -395,7 +395,15 @@ class DeepfakeExtensionServer:
 
     async def start(self):
         logger.info(f"🚀 Starting Netram AI Deepfake Server on ws://{self.host}:{self.port}")
-        async with websockets.serve(self.handle_client, self.host, self.port, max_size=15 * 1024 * 1024):
+        async with websockets.serve(
+            self.handle_client,
+            self.host,
+            self.port,
+            max_size=15 * 1024 * 1024,
+            origins=None,              # Allow all origins (extension runs from meet.google.com, zoom.us, etc.)
+            ping_interval=20,          # Keep connection alive through Render's proxy
+            ping_timeout=20,
+        ):
             await asyncio.Future()  # run forever
 
 
