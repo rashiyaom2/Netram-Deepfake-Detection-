@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aegis Shield</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+
+<body>
+  <div class="macos-window">
+    <!-- Titlebar -->
+    <header class="window-header">
+      <div class="traffic-lights">
+        <span class="light close"></span>
+        <span class="light minimize"></span>
+        <span class="light maximize"></span>
+      </div>
+      <span class="header-title">Aegis Shield</span>
+      <span id="conn-pill" class="conn-pill offline">
+        <span class="conn-dot"></span>
+        <span id="conn-text">Offline</span>
+      </span>
+    </header>
+
+    <main class="window-body">
+      <!-- ─── Threat Assessment Hero ─── -->
+      <section class="hero-section" id="hero">
+        <div class="threat-ring-wrap">
+          <div class="ring-sweep"></div>
+          <svg class="threat-ring" viewBox="0 0 120 120">
+            <circle class="ring-track" cx="60" cy="60" r="52" />
+            <circle class="ring-fill" id="ring-fill" cx="60" cy="60" r="52" stroke-dasharray="326.73"
+              stroke-dashoffset="326.73" />
+          </svg>
+          <div class="ring-center">
+            <span class="ring-pct" id="ring-pct">0%</span>
+            <span class="ring-caption">Risk</span>
+          </div>
+        </div>
+        <div class="hero-text">
+          <span class="threat-badge clear" id="threat-badge">CLEAR</span>
+          <h2 class="threat-label" id="threat-label">Awaiting Analysis</h2>
+          <p class="threat-sublabel" id="threat-sublabel">Connect to the inference engine to begin real-time monitoring.
+          </p>
+        </div>
+      </section>
+
+      <!-- ─── Caution / Calibration Notice Banner ─── -->
+      <section class="card caution-card" id="caution-card">
+        <span class="card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="9" />
+            <line x1="12" y1="11" x2="12" y2="16.5" />
+            <circle cx="12" cy="7.5" r="0.6" fill="currentColor" stroke="none" />
+          </svg>
+        </span>
+        <p class="caution-text" id="caution-text">Initial baseline calibration takes 3–5 seconds. Confidence deepens
+          smoothly as temporal history accumulates.</p>
+      </section>
+
+      <!-- ─── AI Recommendation Card ─── -->
+      <section class="card" id="recommendation-card" style="display:none;">
+        <div class="card-row-header">
+          <span class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.4 1 2.5h6c0-1.1.4-1.9 1-2.5A6 6 0 0 0 12 3z" />
+            </svg>
+          </span>
+          <span class="card-title">AI Assessment</span>
+        </div>
+        <p class="recommendation-text" id="recommendation-text"></p>
+        <div class="dominant-signal-row" id="dominant-row" style="display:none;">
+          <span class="dominant-label">Dominant Signal:</span>
+          <span class="dominant-value" id="dominant-name"></span>
+        </div>
+      </section>
+
+      <!-- ─── Participants ─── -->
+      <section class="card">
+        <div class="card-row-header">
+          <span class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2" />
+              <circle cx="10" cy="7" r="4" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+              <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </span>
+          <span class="card-title">Monitored Participants</span>
+          <span class="participant-count-badge" id="p-count">0</span>
+        </div>
+        <div id="participant-list" class="participant-list">
+          <p class="empty-hint">No active video call detected.</p>
+        </div>
+      </section>
+
+      <!-- ─── Expandable Forensics (hidden by default) ─── -->
+      <section class="card expandable-card" id="forensics-card">
+        <button class="expand-toggle" id="expand-btn" type="button">
+          <span class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M9 2v6L4.5 18a2 2 0 0 0 1.9 3h11.2a2 2 0 0 0 1.9-3L15 8V2" />
+              <path d="M9 2h6" />
+              <path d="M8.5 14h7" />
+            </svg>
+          </span>
+          <span class="card-title">Neural Branch Forensics</span>
+          <span class="chevron" id="chevron"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"
+              stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="9 6 15 12 9 18" />
+            </svg></span>
+        </button>
+        <div class="expand-body" id="expand-body">
+          <div class="branch-row"><span class="b-label">Spatial ViT (Visual Artifacts)</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-spatial"></div>
+            </div><span class="b-val" id="val-spatial">—</span>
+          </div>
+          <div class="branch-row"><span class="b-label">Spectral FFT (Generative Noise)</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-freq"></div>
+            </div><span class="b-val" id="val-freq">—</span>
+          </div>
+          <div class="branch-row"><span class="b-label">Temporal Bi-GRU (Consistency)</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-temporal"></div>
+            </div><span class="b-val" id="val-temporal">—</span>
+          </div>
+          <div class="branch-row"><span class="b-label">Liveness &amp; Blink EAR</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-liveness"></div>
+            </div><span class="b-val" id="val-liveness">—</span>
+          </div>
+          <div class="branch-row"><span class="b-label">Landmark Micro-Jitter</span>
+            <div class="bar-track">
+              <div class="bar-fill" id="bar-jitter"></div>
+            </div><span class="b-val" id="val-jitter">—</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-item">Latency: <b id="meta-latency">—</b></span>
+            <span class="meta-item">Frames: <b id="meta-frames">0</b></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── Settings ─── -->
+      <section class="card">
+        <div class="card-row-header">
+          <span class="card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+            </svg>
+          </span>
+          <span class="card-title">Settings</span>
+        </div>
+        <div class="setting-row">
+          <div><span class="s-title">Video Overlay Badges</span><br><span class="s-desc">Show trust indicators on video
+              tiles</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-overlay" checked><span
+              class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row">
+          <div><span class="s-title">Audio Alert on Detection</span><br><span class="s-desc">Play chime when deepfake is
+              confirmed</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-audio" checked><span
+              class="toggle-slider"></span></label>
+        </div>
+        <div class="setting-row server-config-row">
+          <div class="server-config-group">
+            <span class="s-title">Inference Server URL</span><br>
+            <span class="s-desc">Cloud server connected by default</span>
+            <div class="server-input-wrap">
+              <input type="text" id="input-server-url" class="server-input" placeholder="wss://netram-deepfake-detection.onrender.com"
+                spellcheck="false" />
+              <button type="button" id="btn-save-server" class="btn-save-server">Save</button>
+            </div>
+            <div class="server-hints">
+              <span class="server-hint-chip" data-url="wss://netram-deepfake-detection.onrender.com">Cloud (Default)</span>
+              <span class="server-hint-chip" data-url="ws://127.0.0.1:8765">Local PC</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Connection Troubleshooter Box (shown when offline) -->
+        <div class="troubleshoot-box" id="troubleshoot-box" style="display:none;">
+          <span class="tb-title">⚡ Connection Troubleshooting:</span>
+          <ol class="tb-list">
+            <li>The cloud engine may be starting up — Render free-tier services sleep after inactivity. Please wait ~30 seconds and click <b>Sync</b>.</li>
+            <li>If still offline, check your internet connection and try refreshing the page.</li>
+            <li>For advanced users: you can run a local server and switch to <code>ws://127.0.0.1:8765</code> above.</li>
+          </ol>
+        </div>
+      </section>
+    </main>
+
+    <footer class="window-footer">
+      <button class="btn secondary" id="btn-export">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="7 10 12 15 17 10" />
+          <line x1="12" y1="15" x2="12" y2="3" />
+        </svg>
+        Export Log
+      </button>
+      <button class="btn primary" id="btn-sync">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <polyline points="23 4 23 10 17 10" />
+          <polyline points="1 20 1 14 7 14" />
+          <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
+        </svg>
+        Sync Engine
+      </button>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+
+</html>

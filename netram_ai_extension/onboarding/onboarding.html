@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Netram — Real-Time AI Deepfake Shield</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="onboarding.css">
+</head>
+<body>
+  <!-- Ambient Gradient Glow -->
+  <div class="background-mesh">
+    <div class="mesh-glow mesh-1"></div>
+    <div class="mesh-glow mesh-2"></div>
+    <div class="mesh-glow mesh-3"></div>
+  </div>
+
+  <div class="onboarding-container">
+    <!-- Top Navigation Header -->
+    <header class="nav-header">
+      <div class="brand-group">
+        <div class="siri-orb"></div>
+        <div class="brand-text">
+          <span class="brand-name">Netram Shield</span>
+          <span class="brand-tagline">AI Defense</span>
+        </div>
+      </div>
+      <div class="nav-controls">
+        <div class="step-indicators">
+          <span class="step-dot active" data-slide="0" title="Overview"></span>
+          <span class="step-dot" data-slide="1" title="Neural Architecture"></span>
+          <span class="step-dot" data-slide="2" title="Siri HUD"></span>
+          <span class="step-dot" data-slide="3" title="Live Test Sandbox"></span>
+          <span class="step-dot" data-slide="4" title="Deployment"></span>
+        </div>
+        <button class="skip-btn" id="btn-skip">Skip Tour →</button>
+      </div>
+    </header>
+
+    <!-- Slide Carousel Wrapper -->
+    <main class="carousel-viewport">
+      <!-- ─── SLIDE 0: Welcome & Overview ─── -->
+      <section class="slide active" id="slide-0">
+        <div class="slide-content">
+          <div class="hero-badge">ENTERPRISE NEURAL DEFENSE</div>
+          <h1 class="hero-title">The Third Eye for <span class="gradient-text">Digital Integrity</span>.</h1>
+          <p class="hero-description">
+            Netram runs multi-modal neural inspection directly on your video calls — revealing deepfakes, AI voice clones, and presentation attacks in real time without lag or cloud data leakage.
+          </p>
+
+          <div class="hero-cards">
+            <div class="feature-card">
+              <div class="feature-icon">🛡️</div>
+              <div class="feature-title">Real-Time In-Call Shield</div>
+              <p class="feature-desc">Active protection on Google Meet, Zoom Web, and Microsoft Teams with sub-50ms latency.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔮</div>
+              <div class="feature-title">Draggable Siri Neural HUD</div>
+              <p class="feature-desc">Moveable macOS-style glass HUD providing explainable forensic attribution right on your screen.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔒</div>
+              <div class="feature-title">100% Private & Local</div>
+              <p class="feature-desc">On-device neural execution ensures no meeting audio or video frames ever leave your computer.</p>
+            </div>
+          </div>
+
+          <div class="slide-footer">
+            <button class="primary-btn next-btn" data-next="1">Explore Neural Engine →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 1: Multi-Modal Neural Architecture ─── -->
+      <section class="slide" id="slide-1">
+        <div class="slide-content">
+          <div class="hero-badge">MULTI-MODAL NEURAL ENGINE</div>
+          <h2 class="section-title">4 Specialized Branches. <span class="gradient-text">Zero Blind Spots</span>.</h2>
+          <p class="section-subtitle">
+            Unlike heuristic filters, Netram cross-examines incoming video and audio simultaneously across 4 independent neural backends.
+          </p>
+
+          <div class="branches-grid">
+            <div class="branch-card">
+              <div class="branch-top">
+                <span class="branch-pill">SPATIAL</span>
+                <span class="branch-tech">ViT ONNX</span>
+              </div>
+              <h3>Visual Seams & Blending</h3>
+              <p>Detects pixel-level distortion, iris warping, and generative face-swap blending borders.</p>
+            </div>
+
+            <div class="branch-card">
+              <div class="branch-top">
+                <span class="branch-pill freq">SPECTRAL</span>
+                <span class="branch-tech">2D DCT CNN</span>
+              </div>
+              <h3>Frequency Domain Noise</h3>
+              <p>Uncovers mathematical high-frequency grid artifacts left by GANs and diffusion models.</p>
+            </div>
+
+            <div class="branch-card">
+              <div class="branch-top">
+                <span class="branch-pill temp">TEMPORAL</span>
+                <span class="branch-tech">Bi-GRU (Attn)</span>
+              </div>
+              <h3>Inter-Frame Trajectories</h3>
+              <p>Tracks 512-d embedding trajectories across frames to flag unnatural phase drift and micro-jitter.</p>
+            </div>
+
+            <div class="branch-card">
+              <div class="branch-top">
+                <span class="branch-pill live">PHYSIOLOGY</span>
+                <span class="branch-tech">Mesh & AASIST</span>
+              </div>
+              <h3>Liveness & Voice Clones</h3>
+              <p>Validates adaptive eye blink kinematics (EAR) and flags TTS synthetic voice cloning artifacts.</p>
+            </div>
+          </div>
+
+          <div class="slide-footer">
+            <button class="secondary-btn prev-btn" data-prev="0">← Back</button>
+            <button class="primary-btn next-btn" data-next="2">See In-Meeting HUD →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 2: Interactive Siri HUD ─── -->
+      <section class="slide" id="slide-2">
+        <div class="slide-content">
+          <div class="hero-badge">MINIMALIST IN-CALL HUD</div>
+          <h2 class="section-title">Floating Real-Time Telemetry. <span class="gradient-text">macOS Elegance</span>.</h2>
+          <p class="section-subtitle">
+            Try interacting with the live preview below! Grab the handle to drag the HUD anywhere on screen.
+          </p>
+
+          <!-- Interactive HUD Demo Preview -->
+          <div class="hud-demo-container">
+            <div class="hud-demo-box" id="demo-hud">
+              <div class="demo-hud-header" id="demo-hud-handle">
+                <div class="demo-orb-group">
+                  <div class="siri-orb mini"></div>
+                  <div>
+                    <span class="demo-hud-title">Netram Neural HUD</span>
+                    <span class="demo-hud-sub">🟢 Engine Active</span>
+                  </div>
+                </div>
+                <span class="demo-drag-hint">Drag here</span>
+              </div>
+
+              <div class="demo-hud-body">
+                <div class="demo-hero">
+                  <div class="demo-ring-wrap">
+                    <span class="demo-ring-val">4%</span>
+                  </div>
+                  <div class="demo-info">
+                    <span class="demo-pill clear">AUTHENTIC</span>
+                    <span class="demo-name">Alice (Secure Stream)</span>
+                  </div>
+                </div>
+
+                <div class="demo-bars">
+                  <div class="demo-bar-row">
+                    <span>Spatial ViT (Visual)</span>
+                    <div class="demo-track"><div class="demo-fill" style="width: 5%;"></div></div>
+                  </div>
+                  <div class="demo-bar-row">
+                    <span>Spectral Frequency CNN</span>
+                    <div class="demo-track"><div class="demo-fill" style="width: 2%;"></div></div>
+                  </div>
+                  <div class="demo-bar-row">
+                    <span>Temporal Bi-GRU</span>
+                    <div class="demo-track"><div class="demo-fill" style="width: 1%;"></div></div>
+                  </div>
+                </div>
+
+                <div class="demo-rec">
+                  <span class="demo-rec-title">AI FORENSIC VERDICT</span>
+                  <p class="demo-rec-desc">Nominal readings. Video and acoustic signatures are verified authentic.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="slide-footer">
+            <button class="secondary-btn prev-btn" data-prev="1">← Back</button>
+            <button class="primary-btn next-btn" data-next="3">Test In Live Sandbox →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 3: Interactive Test Meeting Sandbox (test_meeting.html) ─── -->
+      <section class="slide" id="slide-3">
+        <div class="slide-content">
+          <div class="hero-badge">LIVE TESTBED SANDBOX</div>
+          <h2 class="section-title">Experience the Shield in Action. <span class="gradient-text">Interactive Meeting Grid</span>.</h2>
+          <p class="section-subtitle">
+            Simulating 4 concurrent participants. Test anomaly injection or enable your live webcam to verify detection.
+          </p>
+
+          <!-- Top Sandbox Controls Bar -->
+          <div class="sandbox-top-controls">
+            <div class="sandbox-chips">
+              <span style="font-size:11px; font-weight:600; color:var(--text-muted);">⚡ Threat Simulator:</span>
+              <button class="chip-btn" id="ob-sim-jitter">Mesh Jitter</button>
+              <button class="chip-btn" id="ob-sim-freeze">Static Freeze</button>
+              <button class="chip-btn" id="ob-sim-desync">Lip Desync</button>
+            </div>
+            <button class="chip-btn" id="ob-btn-camera" style="background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.3); color:#38bdf8;">
+              📷 Enable Live Webcam
+            </button>
+          </div>
+
+          <!-- 4-Participant Video Grid -->
+          <div class="sandbox-grid">
+            <!-- P1: Alice -->
+            <div class="sb-card" id="sb-card-alice">
+              <div class="sb-tag"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span> Alice (Authentic)</div>
+              <canvas id="ob-c1" width="480" height="360" style="display:none;"></canvas>
+              <video id="ob-v1" autoplay muted playsinline></video>
+              <div class="sb-hud"><span>Neural Risk: <b>3%</b></span><span class="sb-pill clear">CLEAR</span></div>
+            </div>
+
+            <!-- P2: Bob (Deepfake Face-Swap) -->
+            <div class="sb-card border-critical" id="sb-card-bob">
+              <div class="sb-tag"><span style="width:6px; height:6px; border-radius:50%; background:#ef4444;"></span> Bob (Deepfake Synthesized)</div>
+              <canvas id="ob-c2" width="480" height="360" style="display:none;"></canvas>
+              <video id="ob-v2" autoplay muted playsinline></video>
+              <div class="sb-hud"><span>Neural Risk: <b>88%</b></span><span class="sb-pill critical">SYNTHETIC</span></div>
+            </div>
+
+            <!-- P3: Charlie (Static Photo Replay) -->
+            <div class="sb-card border-warning" id="sb-card-charlie">
+              <div class="sb-tag"><span style="width:6px; height:6px; border-radius:50%; background:#f59e0b;"></span> Charlie (Static Photo Replay)</div>
+              <canvas id="ob-c3" width="480" height="360" style="display:none;"></canvas>
+              <video id="ob-v3" autoplay muted playsinline></video>
+              <div class="sb-hud"><span>Neural Risk: <b>72%</b></span><span class="sb-pill warning">PRESENTATION ATTACK</span></div>
+            </div>
+
+            <!-- P4: David (Verified Speaker) -->
+            <div class="sb-card" id="sb-card-david">
+              <div class="sb-tag"><span style="width:6px; height:6px; border-radius:50%; background:#10b981;"></span> David (Verified Speaker)</div>
+              <canvas id="ob-c4" width="480" height="360" style="display:none;"></canvas>
+              <video id="ob-v4" autoplay muted playsinline></video>
+              <div class="sb-hud"><span>Neural Risk: <b>2%</b></span><span class="sb-pill clear">CLEAR</span></div>
+            </div>
+          </div>
+
+          <div class="slide-footer">
+            <button class="secondary-btn prev-btn" data-prev="2">← Back</button>
+            <button class="primary-btn next-btn" data-next="4">Proceed to Deployment →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─── SLIDE 4: Quick Start & Deployment ─── -->
+      <section class="slide" id="slide-4">
+        <div class="slide-content">
+          <div class="hero-badge">READY FOR DEPLOYMENT</div>
+          <h2 class="section-title">Defense Active. <span class="gradient-text">You're Protected</span>.</h2>
+          <p class="section-subtitle">Follow these quick steps whenever you join a secure video meeting.</p>
+
+          <div class="steps-grid">
+            <div class="step-card">
+              <div class="step-num">1</div>
+              <h3>Cloud Engine Auto-Connects</h3>
+              <p>Netram's AI inference engine runs in the cloud — no local setup needed. Just install and go.</p>
+              <div class="conn-status-box" id="onboarding-conn-box">
+                <span class="conn-status-dot" id="conn-dot"></span>
+                <span id="conn-status-label">Connecting to cloud engine…</span>
+              </div>
+            </div>
+
+            <div class="step-card">
+              <div class="step-num">2</div>
+              <h3>Join Any Video Call</h3>
+              <p>Open <strong>Google Meet</strong>, <strong>Zoom Web</strong>, or <strong>Teams</strong> directly in Chrome.</p>
+            </div>
+
+            <div class="step-card">
+              <div class="step-num">3</div>
+              <h3>Automated Protection</h3>
+              <p>Netram automatically attaches trust badges to participant tiles and floats the Siri HUD.</p>
+            </div>
+          </div>
+
+          <div class="slide-footer launch-footer">
+            <button class="secondary-btn prev-btn" data-prev="3">← Back to Sandbox</button>
+            <button class="secondary-btn" id="btn-open-testbed">🌐 Open Full Testbed</button>
+            <button class="primary-btn large-btn" id="btn-launch-meet">🚀 Launch Google Meet</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="onboarding.js"></script>
+</body>
+</html>
