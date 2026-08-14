@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Netram AI — Enterprise Deepfake Detection Testbed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090e;
+      --bg-surface: #0f1422;
+      --card-bg: rgba(19, 26, 44, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.25);
+      --green: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.2);
+      --amber: #f59e0b;
+      --red: #ef4444;
+      --red-glow: rgba(239, 68, 68, 0.25);
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.08) 0px, transparent 50%);
+      color: var(--text);
+      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    /* ── Header Bar ── */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 28px;
+      background: rgba(15, 20, 34, 0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--card-border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand-group {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #0ea5e9, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+    }
+
+    .brand-icon svg {
+      width: 22px;
+      height: 22px;
+      color: #fff;
+    }
+
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(to right, #ffffff, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-tag {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-size: 12px;
+      font-weight: 500;
+      color: #34d399;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.9); }
+    }
+
+    /* ── Main Layout ── */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 24px 28px;
+      gap: 20px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* ── Meeting Top Stats Bar ── */
+    .meeting-meta-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 14px 20px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      backdrop-filter: blur(12px);
+    }
+
+    .meta-group {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .meta-stat {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .meta-stat-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .meta-stat-val {
+      font-size: 14px;
+      font-weight: 600;
+      color: #f1f5f9;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .controls-btn-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      outline: none;
+      font-family: inherit;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #0369a1, #1d4ed8);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: rgba(239, 68, 68, 0.3);
+      color: #f87171;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.25);
+    }
+
+    /* ── Participant Video Grid ── */
+    .video-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      flex: 1;
+    }
+
+    @media (max-width: 900px) {
+      .video-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .video-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .video-card.border-critical {
+      border-color: rgba(239, 68, 68, 0.8) !important;
+      box-shadow: 0 0 30px rgba(239, 68, 68, 0.35) !important;
+    }
+
+    .video-card.border-warning {
+      border-color: rgba(245, 158, 11, 0.8) !important;
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.3) !important;
+    }
+
+    .video-card.border-clear {
+      border-color: rgba(16, 185, 129, 0.4);
+    }
+
+    video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ── Participant Overlay Info ── */
+    .card-top-bar {
+      position: absolute;
+      top: 14px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .card-label {
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(10px);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .audio-indicator {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      height: 12px;
+    }
+
+    .audio-bar {
+      width: 3px;
+      background: #38bdf8;
+      border-radius: 2px;
+      animation: soundwave 1s ease-in-out infinite;
+    }
+
+    .audio-bar:nth-child(1) { height: 4px; animation-delay: 0.1s; }
+    .audio-bar:nth-child(2) { height: 10px; animation-delay: 0.2s; }
+    .audio-bar:nth-child(3) { height: 7px; animation-delay: 0.3s; }
+
+    @keyframes soundwave {
+      0%, 100% { transform: scaleY(0.4); }
+      50% { transform: scaleY(1.2); }
+    }
+
+    /* ── On-Card Model Telemetry HUD ── */
+    .card-telemetry-hud {
+      position: absolute;
+      bottom: 14px;
+      left: 16px;
+      right: 16px;
+      background: rgba(10, 14, 26, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+      transition: opacity 0.2s ease;
+    }
+
+    .hud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: #94a3b8;
+    }
+
+    .hud-threat-tag {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+    }
+
+    .hud-threat-tag.clear {
+      background: rgba(16, 185, 129, 0.2);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .hud-threat-tag.calibrating {
+      background: rgba(139, 92, 246, 0.2);
+      color: #c084fc;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+
+    .hud-threat-tag.moderate, .hud-threat-tag.high {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .hud-threat-tag.critical {
+      background: rgba(239, 68, 68, 0.2);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.4);
+    }
+
+    .hud-bars-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .hud-bar-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .hud-bar-label {
+      font-size: 10px;
+      color: #94a3b8;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .hud-track {
+      height: 4px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .hud-fill {
+      height: 100%;
+      width: 0%;
+      background: #10b981;
+      border-radius: 2px;
+      transition: width 0.3s ease, background-color 0.3s ease;
+    }
+
+    /* ── Bottom Interactive Control Dock ── */
+    .control-dock {
+      background: rgba(15, 20, 34, 0.9);
+      border: 1px solid var(--card-border);
+      border-radius: 20px;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .dock-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .dock-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dock-btn:hover {
+      background: rgba(255, 255, 255, 0.16);
+      transform: translateY(-2px);
+    }
+
+    .dock-btn.active {
+      background: #ef4444;
+      border-color: #f87171;
+    }
+
+    .dock-btn svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    /* ── Anomaly Injection Drawer ── */
+    .injection-panel {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .chip-btn {
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #e2e8f0;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .chip-btn.active {
+      background: rgba(239, 68, 68, 0.25);
+      border-color: rgba(239, 68, 68, 0.5);
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header>
+    <div class="brand-group">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="m9 12 2 2 4-4"/>
+        </svg>
+      </div>
+      <div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="brand-title">Netram AI Shield</span>
+          <span class="brand-tag">Enterprise Testbed</span>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="status-pill" id="engine-status">
+        <span class="status-dot"></span>
+        <span id="engine-status-text">Inference Engine Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main>
+    <!-- Meeting Top Bar -->
+    <div class="meeting-meta-bar">
+      <div class="meta-group">
+        <div class="meta-stat">
+          <span class="meta-stat-label">Active Session</span>
+          <span class="meta-stat-val">SEC-MEET-8821</span>
+        </div>
+        <div class="meta-stat">
+          <span class="meta-stat-label">Neural Models</span>
+          <span class="meta-stat-val" style="color:#38bdf8;">8 Active (ViT + GRU + AASIST)</span>
+        </div>
+        <div class="meta-stat">
+          <span class="meta-stat-label">Engine Latency</span>
+          <span class="meta-stat-val" id="avg-latency">~32 ms</span>
+        </div>
+      </div>
+      <div class="controls-btn-group">
+        <button class="btn btn-primary" id="btn-toggle-camera">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          <span id="camera-btn-text">Enable Live Camera</span>
+        </button>
+        <button class="btn btn-secondary" id="btn-toggle-hud">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          Toggle Telemetry HUD
+        </button>
+      </div>
+    </div>
+
+    <!-- 4-Participant Video Grid -->
+    <div class="video-grid">
+      <!-- Participant 1: Alice (Authentic / Live Camera Stream) -->
+      <div class="video-card" id="card-alice" data-participant-id="participant_alice">
+        <div class="card-top-bar">
+          <span class="card-label">
+            <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+            Alice (Authentic Video Feed)
+          </span>
+          <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+        </div>
+        <canvas id="c1" width="640" height="480" style="display:none;"></canvas>
+        <video id="v1" autoplay muted playsinline></video>
+        <!-- Telemetry HUD -->
+        <div class="card-telemetry-hud" id="hud-alice">
+          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag clear" id="tag-alice">CLEAR</span></div>
+          <div class="hud-bars-grid">
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-alice"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-alice"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-alice"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-alice"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Participant 2: Bob (Deepfake Face Swap Simulation) -->
+      <div class="video-card" id="card-bob" data-participant-id="participant_bob">
+        <div class="card-top-bar">
+          <span class="card-label">
+            <span style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
+            Bob (Deepfake Synthesized Feed)
+          </span>
+          <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+        </div>
+        <canvas id="c2" width="640" height="480" style="display:none;"></canvas>
+        <video id="v2" autoplay muted playsinline></video>
+        <!-- Telemetry HUD -->
+        <div class="card-telemetry-hud" id="hud-bob">
+          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag critical" id="tag-bob">CRITICAL</span></div>
+          <div class="hud-bars-grid">
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-bob">85%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-bob" style="width:85%; background:#ef4444;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-bob">78%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-bob" style="width:78%; background:#ef4444;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-bob">91%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-bob" style="width:91%; background:#ef4444;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-bob">12%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-bob" style="width:12%; background:#10b981;"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Participant 3: Charlie (Static Photo / Presentation Attack) -->
+      <div class="video-card" id="card-charlie" data-participant-id="participant_charlie">
+        <div class="card-top-bar">
+          <span class="card-label">
+            <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>
+            Charlie (Static Replay / Presentation Attack)
+          </span>
+        </div>
+        <canvas id="c3" width="640" height="480" style="display:none;"></canvas>
+        <video id="v3" autoplay muted playsinline></video>
+        <!-- Telemetry HUD -->
+        <div class="card-telemetry-hud" id="hud-charlie">
+          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag high" id="tag-charlie">HIGH RISK</span></div>
+          <div class="hud-bars-grid">
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-charlie">25%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-charlie" style="width:25%; background:#10b981;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-charlie">30%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-charlie" style="width:30%; background:#10b981;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-charlie">20%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-charlie" style="width:20%; background:#10b981;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-charlie">96%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-charlie" style="width:96%; background:#ef4444;"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Participant 4: David (Verified Multi-Modal Speaker) -->
+      <div class="video-card" id="card-david" data-participant-id="participant_david">
+        <div class="card-top-bar">
+          <span class="card-label">
+            <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+            David (Verified Multi-Modal Stream)
+          </span>
+          <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+        </div>
+        <canvas id="c4" width="640" height="480" style="display:none;"></canvas>
+        <video id="v4" autoplay muted playsinline></video>
+        <!-- Telemetry HUD -->
+        <div class="card-telemetry-hud" id="hud-david">
+          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag clear" id="tag-david">CLEAR</span></div>
+          <div class="hud-bars-grid">
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-david">4%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-david" style="width:4%; background:#10b981;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-david">6%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-david" style="width:6%; background:#10b981;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-david">2%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-david" style="width:2%; background:#10b981;"></div></div></div>
+            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-david">1%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-david" style="width:1%; background:#10b981;"></div></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Dock -->
+    <div class="control-dock">
+      <div class="dock-actions">
+        <button class="dock-btn" id="dock-mic" title="Microphone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
+        <button class="dock-btn" id="dock-cam" title="Camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></button>
+        <button class="dock-btn" id="dock-screen" title="Screen Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
+      </div>
+
+      <!-- Live Synthetic Anomaly Injector Controls -->
+      <div class="injection-panel">
+        <span>⚡ Threat Simulator:</span>
+        <button class="chip-btn" id="sim-jitter">Mesh Jitter</button>
+        <button class="chip-btn" id="sim-freeze">Static Freeze</button>
+        <button class="chip-btn" id="sim-desync">Lip Desync</button>
+        <button class="chip-btn" id="sim-voice">Audio Spoof</button>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // State management
+    let activeCameraStream = null;
+    let anomalyStates = {
+      jitter: false,
+      freeze: false,
+      desync: false,
+      voice: false
+    };
+
+    // WebSocket link to real local inference server
+    let ws = null;
+    function connectInferenceServer() {
+      try {
+        ws = new WebSocket("ws://127.0.0.1:8765");
+        ws.onopen = () => {
+          document.getElementById("engine-status").style.background = "rgba(16, 185, 129, 0.15)";
+          document.getElementById("engine-status-text").textContent = "Inference Engine Connected";
+        };
+        ws.onmessage = (evt) => {
+          try {
+            const data = JSON.parse(evt.data);
+            if (data.type === "verdict" || data.type === "telemetry") {
+              updateTelemetryUI(data);
+            }
+          } catch (_) {}
+        };
+        ws.onclose = () => {
+          setTimeout(connectInferenceServer, 3000);
+        };
+      } catch (_) {}
+    }
+
+    function updateTelemetryUI(d) {
+      let suffix = "";
+      if (d.participant_id.includes("alice")) suffix = "alice";
+      else if (d.participant_id.includes("bob")) suffix = "bob";
+      else if (d.participant_id.includes("charlie")) suffix = "charlie";
+      else if (d.participant_id.includes("david")) suffix = "david";
+      if (!suffix) return;
+
+      const card = document.getElementById("card-" + suffix);
+      const tag = document.getElementById("tag-" + suffix);
+      if (tag) {
+        tag.textContent = d.threat_level || "CLEAR";
+        tag.className = "hud-threat-tag " + (d.threat_level || "clear").toLowerCase();
+      }
+
+      if (card) {
+        card.classList.remove("border-critical", "border-warning", "border-clear");
+        if (d.threat_level === "CRITICAL" || d.threat_level === "HIGH") {
+          card.classList.add("border-critical");
+        } else if (d.threat_level === "MODERATE") {
+          card.classList.add("border-warning");
+        } else {
+          card.classList.add("border-clear");
+        }
+      }
+
+      const setVal = (key, val) => {
+        const v = Math.min(100, Math.max(0, (val || 0) * 100)).toFixed(0);
+        const txt = document.getElementById(`val-${key}-${suffix}`);
+        const bar = document.getElementById(`bar-${key}-${suffix}`);
+        if (txt) txt.textContent = v + "%";
+        if (bar) {
+          bar.style.width = v + "%";
+          bar.style.background = v > 60 ? "#ef4444" : (v > 35 ? "#f59e0b" : "#10b981");
+        }
+      };
+
+      setVal("sp", d.p_spatial);
+      setVal("fr", d.p_freq);
+      setVal("tg", d.p_temporal);
+      setVal("li", d.p_liveness);
+
+      if (d.latency_ms) {
+        document.getElementById("avg-latency").textContent = d.latency_ms.toFixed(0) + " ms";
+      }
+    }
+
+    // High-Resolution Photorealistic Synthetic Stream Generator
+    function createPhotorealisticStream(canvasId, videoId, persona) {
+      const canvas = document.getElementById(canvasId);
+      const ctx = canvas.getContext('2d');
+      const video = document.getElementById(videoId);
+      let t = Math.random() * 100;
+
+      function renderFrame() {
+        t += 0.04;
+        const w = canvas.width, h = canvas.height;
+        const cx = w / 2, cy = h / 2;
+
+        // Modern studio background
+        const grad = ctx.createLinearGradient(0, 0, w, h);
+        if (persona === 'bob') {
+          grad.addColorStop(0, '#1a1024'); grad.addColorStop(1, '#0c0714');
+        } else {
+          grad.addColorStop(0, '#101626'); grad.addColorStop(1, '#070a12');
+        }
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, w, h);
+
+        // Movement dynamics
+        const isStatic = (persona === 'charlie') || anomalyStates.freeze;
+        const isDeepfake = (persona === 'bob') || anomalyStates.jitter;
+        
+        const headSwayX = isStatic ? 0 : Math.sin(t * 0.7) * 8;
+        const headSwayY = isStatic ? 0 : Math.cos(t * 0.9) * 4;
+        const jitterX = isDeepfake ? (Math.random() - 0.5) * 6 : 0;
+        const jitterY = isDeepfake ? (Math.random() - 0.5) * 6 : 0;
+
+        const fx = cx + headSwayX + jitterX;
+        const fy = cy + headSwayY + jitterY;
+
+        // Torso / Shoulders
+        ctx.beginPath();
+        ctx.ellipse(fx, fy + 190, 150, 90, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+
+        // Neck
+        ctx.fillStyle = '#c59b7b';
+        ctx.fillRect(fx - 28, fy + 70, 56, 60);
+
+        // Head Base
+        ctx.beginPath();
+        ctx.ellipse(fx, fy, 85, 110, 0, 0, Math.PI * 2);
+        const skinGrad = ctx.createRadialGradient(fx - 15, fy - 20, 20, fx, fy, 110);
+        skinGrad.addColorStop(0, '#f2caae');
+        skinGrad.addColorStop(1, '#d49b78');
+        ctx.fillStyle = skinGrad;
+        ctx.fill();
+
+        // Eyes & Physiological Blinking
+        const isBlinking = isStatic ? false : (Math.sin(t * 1.8) > 0.92);
+        const eyeHeight = isBlinking ? 2 : 12;
+
+        // Left Eye
+        ctx.beginPath();
+        ctx.ellipse(fx - 32, fy - 15, 14, eyeHeight, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(fx - 32, fy - 15, isBlinking ? 1 : 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+
+        // Right Eye
+        ctx.beginPath();
+        ctx.ellipse(fx + 32, fy - 15, 14, eyeHeight, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(fx + 32, fy - 15, isBlinking ? 1 : 5, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+
+        // Nose
+        ctx.beginPath();
+        ctx.moveTo(fx, fy - 10);
+        ctx.lineTo(fx + 6, fy + 18);
+        ctx.lineTo(fx - 6, fy + 18);
+        ctx.fillStyle = 'rgba(160, 95, 60, 0.35)';
+        ctx.fill();
+
+        // Dynamic Mouth Motion
+        const mouthOpen = isStatic ? 0 : Math.abs(Math.sin(t * 2.8)) * 14;
+        ctx.beginPath();
+        ctx.ellipse(fx, fy + 46, 22, 4 + mouthOpen, 0, 0, Math.PI * 2);
+        ctx.fillStyle = '#883a3a';
+        ctx.fill();
+
+        // Deepfake Artifact Matrix (High-frequency noise boundary)
+        if (isDeepfake) {
+          ctx.fillStyle = 'rgba(255, 0, 128, 0.06)';
+          ctx.fillRect(fx - 65, fy - 55, 130, 120);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.15)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(fx - 65, fy - 55, 130, 120);
+        }
+
+        requestAnimationFrame(renderFrame);
+      }
+
+      renderFrame();
+      const stream = canvas.captureStream(30);
+      video.srcObject = stream;
+    }
+
+    // Toggle real camera
+    async function toggleLiveCamera() {
+      const btnText = document.getElementById("camera-btn-text");
+      const v1 = document.getElementById("v1");
+
+      if (activeCameraStream) {
+        activeCameraStream.getTracks().forEach(tr => tr.stop());
+        activeCameraStream = null;
+        btnText.textContent = "Enable Live Camera";
+        createPhotorealisticStream('c1', 'v1', 'alice');
+      } else {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 640, height: 480 },
+            audio: true
+          });
+          activeCameraStream = stream;
+          v1.srcObject = stream;
+          btnText.textContent = "Switch to Simulated Feed";
+        } catch (err) {
+          alert("Camera permission denied or camera not available: " + err.message);
+        }
+      }
+    }
+
+    // Initialize all streams
+    window.addEventListener("load", () => {
+      createPhotorealisticStream('c1', 'v1', 'alice');
+      createPhotorealisticStream('c2', 'v2', 'bob');
+      createPhotorealisticStream('c3', 'v3', 'charlie');
+      createPhotorealisticStream('c4', 'v4', 'david');
+
+      connectInferenceServer();
+
+      document.getElementById("btn-toggle-camera").addEventListener("click", toggleLiveCamera);
+
+      document.getElementById("btn-toggle-hud").addEventListener("click", () => {
+        document.querySelectorAll(".card-telemetry-hud").forEach(el => {
+          el.style.opacity = el.style.opacity === "0" ? "1" : "0";
+        });
+      });
+
+      // Simulation buttons
+      const setupSimBtn = (id, key) => {
+        const b = document.getElementById(id);
+        b.addEventListener("click", () => {
+          anomalyStates[key] = !anomalyStates[key];
+          b.classList.toggle("active", anomalyStates[key]);
+        });
+      };
+      setupSimBtn("sim-jitter", "jitter");
+      setupSimBtn("sim-freeze", "freeze");
+      setupSimBtn("sim-desync", "desync");
+      setupSimBtn("sim-voice", "voice");
+    });
+  </script>
+</body>
+</html>

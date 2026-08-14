@@ -1,0 +1,2 @@
+*.onnx filter=lfs diff=lfs merge=lfs -text
+models/sync_net.pt filter=lfs diff=lfs merge=lfs -text

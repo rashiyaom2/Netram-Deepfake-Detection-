@@ -1,0 +1,34 @@
+# --- Core ---
+numpy>=1.26
+scipy>=1.12
+opencv-python-headless>=4.9
+pydantic>=2.6
+
+# --- Face / landmark detection ---
+mediapipe>=0.10.9
+# Alternative / higher-accuracy detector, install if you want RetinaFace instead of MediaPipe:
+# retina-face>=0.0.17
+
+# --- Deep learning ---
+torch>=2.2
+torchvision>=0.17
+timm>=0.9.16          # EfficientNet-B0/B4, Swin Transformer backbones
+
+# --- Audio ---
+librosa>=0.10
+soundfile>=0.12
+av>=12.0               # PyAV, for decoding WebRTC/OBS audio+video tracks
+
+# --- Fusion / classical ML ---
+scikit-learn>=1.4      # logistic regression / MLP fusion head, ROC calibration
+
+# --- Serving / orchestration ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+websockets>=12.0
+aiortc>=1.7             # WebRTC track access in Python, if not using a browser extension
+
+# --- Utilities ---
+pyyaml>=6.0
+tqdm>=4.66
+onnxruntime-gpu>=1.17   # for the cascade router's cheap first-pass model (export EfficientNet-B0 to ONNX)

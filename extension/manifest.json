@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "name": "Netram — Real-Time AI Deepfake Shield",
+  "version": "2.1.0",
+  "description": "The Third Eye for Digital Integrity: Real-time multi-modal neural deepfake detection for Google Meet, Zoom, and Teams.",
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    },
+    "default_title": "Netram AI Deepfake Shield"
+  },
+  "background": {
+    "service_worker": "background/service_worker.js"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://meet.google.com/*",
+    "https://*.zoom.us/*",
+    "https://teams.microsoft.com/*",
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "*://*/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://meet.google.com/*",
+        "https://*.zoom.us/*",
+        "https://teams.microsoft.com/*",
+        "http://localhost/*",
+        "http://127.0.0.1/*",
+        "*://*/*"
+      ],
+      "js": ["content/content.js"],
+      "css": ["content/overlay.css"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["icons/*", "content/overlay.css", "onboarding/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
