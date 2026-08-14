@@ -23,6 +23,17 @@ const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.onrender.com";
 let configuredServerUrl = DEFAULT_CLOUD_URL;
 let reconnectTimer = null;
 let currentEndpointIdx = 0;
+let reconnectDelay = 2000;
+
+/* ─── URL Normalizer: auto-convert https/http to wss/ws ─── */
+function normalizeWsUrl(url) {
+  if (!url) return DEFAULT_CLOUD_URL;
+  url = url.trim();
+  if (url.startsWith("https://")) url = "wss://" + url.slice(8);
+  else if (url.startsWith("http://")) url = "ws://" + url.slice(7);
+  if (!url.startsWith("ws://") && !url.startsWith("wss://")) url = "wss://" + url;
+  return url;
+}
 
 /* ─── Settings ─── */
 function loadSettings() {
@@ -32,7 +43,11 @@ function loadSettings() {
       if (r.audioAlertEnabled !== undefined) document.getElementById("toggle-audio").checked = r.audioAlertEnabled;
       const input = document.getElementById("input-server-url");
       if (r.serverUrl && r.serverUrl.trim()) {
-        configuredServerUrl = r.serverUrl.trim();
+        configuredServerUrl = normalizeWsUrl(r.serverUrl);
+        // Auto-fix stored URL if it was wrong
+        if (configuredServerUrl !== r.serverUrl.trim()) {
+          chrome.storage.local.set({ serverUrl: configuredServerUrl });
+        }
         if (input) input.value = configuredServerUrl;
       } else {
         if (input) input.value = DEFAULT_CLOUD_URL;
@@ -50,6 +65,7 @@ function setupListeners() {
   });
   document.getElementById("btn-sync").addEventListener("click", () => {
     currentEndpointIdx = 0;
+    reconnectDelay = 2000;
     if (socket) {
       try { socket.close(); } catch (_) { }
       socket = null;
@@ -63,13 +79,16 @@ function setupListeners() {
   const inputServer = document.getElementById("input-server-url");
   if (btnSaveServer && inputServer) {
     btnSaveServer.addEventListener("click", () => {
-      const val = inputServer.value.trim();
+      let val = inputServer.value.trim();
       if (val) {
+        val = normalizeWsUrl(val);
+        inputServer.value = val;
         configuredServerUrl = val;
         chrome.storage?.local?.set({ serverUrl: val }, () => {
           btnSaveServer.textContent = "Saved ✓";
           setTimeout(() => { btnSaveServer.textContent = "Save"; }, 1500);
           currentEndpointIdx = 0;
+          reconnectDelay = 2000;
           if (socket) {
             try { socket.close(); } catch (_) { }
             socket = null;
@@ -117,13 +136,8 @@ function connectEngine() {
     socket = null;
   }
 
-  const endpoints = [];
-  if (configuredServerUrl) endpoints.push(configuredServerUrl);
-  if (!endpoints.includes(DEFAULT_CLOUD_URL)) endpoints.push(DEFAULT_CLOUD_URL);
-  if (!endpoints.includes("ws://127.0.0.1:8765")) endpoints.push("ws://127.0.0.1:8765");
-  if (!endpoints.includes("ws://localhost:8765")) endpoints.push("ws://localhost:8765");
-
-  const url = endpoints[currentEndpointIdx % endpoints.length];
+  // Only use cloud URL — no localhost fallback for cloud deployments
+  const url = normalizeWsUrl(configuredServerUrl || DEFAULT_CLOUD_URL);
 
   try {
     socket = new WebSocket(url);
@@ -131,7 +145,8 @@ function connectEngine() {
       pill.className = "conn-pill online";
       text.textContent = "Engine Active";
       if (tb) tb.style.display = "none";
-      if (reconnectTimer) { clearInterval(reconnectTimer); reconnectTimer = null; }
+      if (reconnectTimer) { clearTimeout(reconnectTimer); reconnectTimer = null; }
+      reconnectDelay = 2000; // reset backoff on success
     };
     socket.onmessage = (e) => {
       try {
@@ -144,7 +159,6 @@ function connectEngine() {
       text.textContent = "Offline";
       if (tb) tb.style.display = "block";
       socket = null;
-      currentEndpointIdx++;
       scheduleReconnect();
     };
     socket.onerror = () => {
@@ -153,24 +167,24 @@ function connectEngine() {
       if (tb) tb.style.display = "block";
       try { socket.close(); } catch (_) { }
       socket = null;
-      currentEndpointIdx++;
-      scheduleReconnect();
     };
   } catch (_) {
     pill.className = "conn-pill offline";
     text.textContent = "Offline";
     if (tb) tb.style.display = "block";
     socket = null;
-    currentEndpointIdx++;
     scheduleReconnect();
   }
 }
 
 function scheduleReconnect() {
   if (!reconnectTimer) {
-    reconnectTimer = setInterval(() => {
+    reconnectTimer = setTimeout(() => {
+      reconnectTimer = null;
       connectEngine();
-    }, 2000);
+      // Exponential backoff: 2s → 4s → 8s → max 15s
+      reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
+    }, reconnectDelay);
   }
 }
 

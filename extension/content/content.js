@@ -13,6 +13,7 @@
   let configuredServerUrl = DEFAULT_CLOUD_URL;
   let overlayEnabled = true;
   let endpointIdx = 0;
+  let reconnectDelay = 2000;
   const SAMPLE_MS = 300;       // ~3.3 FPS per participant
   const MAX_TILES = 4;
 
@@ -27,11 +28,27 @@
   let siriHudEl = null;
   let activeVerdict = null;
 
+  /* ── URL Normalizer: auto-convert https/http to wss/ws ── */
+  function normalizeWsUrl(url) {
+    if (!url) return DEFAULT_CLOUD_URL;
+    url = url.trim();
+    if (url.startsWith("https://")) url = "wss://" + url.slice(8);
+    else if (url.startsWith("http://")) url = "ws://" + url.slice(7);
+    if (!url.startsWith("ws://") && !url.startsWith("wss://")) url = "wss://" + url;
+    return url;
+  }
+
   /* ── Load & sync settings ── */
   function loadSettings() {
     if (chrome.storage?.local) {
       chrome.storage.local.get(["serverUrl", "overlayEnabled"], (res) => {
-        if (res.serverUrl && res.serverUrl.trim()) configuredServerUrl = res.serverUrl.trim();
+        if (res.serverUrl && res.serverUrl.trim()) {
+          configuredServerUrl = normalizeWsUrl(res.serverUrl);
+          // Auto-fix stored URL if it was wrong
+          if (configuredServerUrl !== res.serverUrl.trim()) {
+            chrome.storage.local.set({ serverUrl: configuredServerUrl });
+          }
+        }
         if (res.overlayEnabled !== undefined) overlayEnabled = res.overlayEnabled;
         updateHudVisibility();
       });
@@ -42,8 +59,9 @@
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === "local") {
         if (changes.serverUrl && changes.serverUrl.newValue) {
-          configuredServerUrl = changes.serverUrl.newValue.trim();
+          configuredServerUrl = normalizeWsUrl(changes.serverUrl.newValue);
           endpointIdx = 0;
+          reconnectDelay = 2000;
           if (ws) {
             try { ws.close(); } catch (_) {}
             ws = null;
@@ -84,25 +102,27 @@
   function connect() {
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
 
-    const endpoints = [];
-    if (configuredServerUrl) endpoints.push(configuredServerUrl);
-    if (!endpoints.includes(DEFAULT_CLOUD_URL)) endpoints.push(DEFAULT_CLOUD_URL);
-    if (!endpoints.includes("ws://127.0.0.1:8765")) endpoints.push("ws://127.0.0.1:8765");
-    if (!endpoints.includes("ws://localhost:8765")) endpoints.push("ws://localhost:8765");
-
-    const url = endpoints[endpointIdx % endpoints.length];
+    // Only use cloud URL — no localhost fallback for cloud deployments
+    const url = normalizeWsUrl(configuredServerUrl || DEFAULT_CLOUD_URL);
     try {
       ws = new WebSocket(url);
-      ws.onopen = () => { connected = true; updateSiriStatus("🟢 Active"); };
+      ws.onopen = () => { connected = true; reconnectDelay = 2000; updateSiriStatus("🟢 Active"); };
       ws.onmessage = (e) => {
         try {
           const d = JSON.parse(e.data);
           if (d.type === "verdict" || d.type === "telemetry") handleVerdict(d);
         } catch (_) {}
       };
-      ws.onclose = () => { connected = false; ws = null; endpointIdx++; updateSiriStatus("⚪ Connecting…"); setTimeout(connect, 2500); };
-      ws.onerror = () => { connected = false; try { ws.close(); } catch (_) {} ws = null; endpointIdx++; updateSiriStatus("⚪ Connecting…"); setTimeout(connect, 2500); };
-    } catch (_) { connected = false; ws = null; endpointIdx++; updateSiriStatus("⚪ Connecting…"); setTimeout(connect, 2500); }
+      ws.onclose = () => { connected = false; ws = null; updateSiriStatus("⚪ Connecting…"); scheduleReconnect(); };
+      ws.onerror = () => { connected = false; try { ws.close(); } catch (_) {} ws = null; updateSiriStatus("⚪ Connecting…"); };
+    } catch (_) { connected = false; ws = null; updateSiriStatus("⚪ Connecting…"); scheduleReconnect(); }
+  }
+
+  function scheduleReconnect() {
+    setTimeout(() => {
+      connect();
+      reconnectDelay = Math.min(reconnectDelay * 1.5, 15000);
+    }, reconnectDelay);
   }
 
   /* ── Visibility controller: only show HUD when camera/video is actively streaming ── */
