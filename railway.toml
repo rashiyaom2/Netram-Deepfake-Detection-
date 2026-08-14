@@ -1,0 +1,6 @@
+[build]
+buildCommand = "pip install -r requirements.txt"
+aptPkgs = ["libxcb1", "libxrender1", "libxkbcommon0"]
+
+[deploy]
+startCommand = "python extension_server.py --host 0.0.0.0 --port $PORT"
