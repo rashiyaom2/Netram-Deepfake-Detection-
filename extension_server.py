@@ -16,6 +16,7 @@ Listens on ws://localhost:8765
 import asyncio
 import base64
 import hashlib
+import http
 import json
 import logging
 import os
@@ -393,22 +394,47 @@ class DeepfakeExtensionServer:
             if websocket in self.clients:
                 self.clients.remove(websocket)
 
+    def http_process_request(self, connection, request):
+        """
+        Handles HTTP requests (such as Railway health check /health or GET /)
+        while allowing WebSocket upgrade handshakes to proceed normally.
+        """
+        upgrade = request.headers.get("Upgrade", "").lower()
+        if "websocket" in upgrade:
+            return None
+
+        path = getattr(request, "path", "/")
+        if path in ("/", "/health", "/ping", "/status"):
+            payload = json.dumps({
+                "status": "healthy",
+                "service": "Netram AI Real-Time Deepfake Inference Engine",
+                "version": "2.1.0",
+                "protocols": ["HTTP/1.1", "WebSocket (WSS)"],
+                "active_clients": len(self.clients),
+                "message": "Netram AI backend is online and ready to inspect video/audio streams."
+            }, indent=2)
+            return connection.respond(http.HTTPStatus.OK, payload)
+        
+        return connection.respond(http.HTTPStatus.NOT_FOUND, "Not Found\n")
+
     async def start(self):
         logger.info(f"🚀 Starting Netram AI Deepfake Server on ws://{self.host}:{self.port}")
+        logger.info(f"🩺 HTTP Health check ready on http://{self.host}:{self.port}/health")
         async with websockets.serve(
             self.handle_client,
             self.host,
             self.port,
             max_size=15 * 1024 * 1024,
             origins=None,              # Allow all origins (extension runs from meet.google.com, zoom.us, etc.)
-            ping_interval=20,          # Keep connection alive through Render's proxy
+            ping_interval=20,          # Keep connection alive through Railway / Render proxy
             ping_timeout=20,
+            process_request=self.http_process_request,
         ):
             await asyncio.Future()  # run forever
 
 
 
-def run_server(host: str = "localhost", port: int = 8765):
+def run_server(host: str = "0.0.0.0", port: int = 8765):
     server = DeepfakeExtensionServer(host=host, port=port)
     try:
         asyncio.run(server.start())
@@ -419,9 +445,11 @@ def run_server(host: str = "localhost", port: int = 8765):
 if __name__ == "__main__":
     import argparse
     default_port = int(os.environ.get("PORT", 8765))
+    default_host = os.environ.get("HOST", "0.0.0.0")
     parser = argparse.ArgumentParser(description="Deepfake Detection Extension WebSocket Server")
-    parser.add_argument("--host", default="0.0.0.0", help="Host binding (default: 0.0.0.0)")
+    parser.add_argument("--host", default=default_host, help=f"Host binding (default: {default_host})")
     parser.add_argument("--port", type=int, default=default_port, help=f"Port binding (default: {default_port})")
     args = parser.parse_args()
     run_server(host=args.host, port=args.port)
+
 

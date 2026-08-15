@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python310", "libsndfile", "ffmpeg", "libGL", "glib"]
+
+[phases.install]
+cmds = ["pip install --upgrade pip", "pip install -r requirements.txt"]
+
+[start]
+cmd = "python main.py"
