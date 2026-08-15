@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", () => {
   startDisplayLoop();
 });
 
-const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.onrender.com";
+const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.up.railway.app";
 let configuredServerUrl = DEFAULT_CLOUD_URL;
 let reconnectTimer = null;
 let currentEndpointIdx = 0;

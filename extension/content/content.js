@@ -11,7 +11,7 @@
  * - Floating badges with hoverable neural inspector popovers
  */
 (() => {
-  const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.onrender.com";
+  const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.up.railway.app";
   let configuredServerUrl = DEFAULT_CLOUD_URL;
   let overlayEnabled = true;
   let autoChatNotice = true;

@@ -84,18 +84,13 @@ def run_http_server(host="127.0.0.1", port=3000):
 def run_websocket_server(host="127.0.0.1", port=8765):
     """Runs the full Netram AI extension WebSocket server in an asyncio event loop."""
     import asyncio
-    import websockets
-    from extension_server import handle_client
+    from extension_server import DeepfakeExtensionServer
 
-    async def main_ws():
-        async with websockets.serve(handle_client, host, port, max_size=10 * 1024 * 1024):
-            logger.info(f"⚡ Netram Inference WebSocket Server listening on ws://{host}:{port}")
-            await asyncio.Future()  # run forever
-
+    server = DeepfakeExtensionServer(host=host, port=port)
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     try:
-        loop.run_until_complete(main_ws())
+        loop.run_until_complete(server.start())
     except Exception as e:
         logger.error(f"WebSocket engine encountered error: {e}")
 
