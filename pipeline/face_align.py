@@ -1,22 +1,5 @@
-"""
-Stage 3 — Face Detection & Alignment (doc §3).
 
-Runs the FULL landmark model (MediaPipe Face Mesh, 468 points) -- a
-heavier/more precise model than Stage 2's cheap 6-keypoint QC detector.
-This is intentional: Stage 2 just needs to gate frames fast, Stage 3 needs
-accurate geometry for pixel-level artifact detection downstream.
 
-Pipeline:
-  1. Landmark detection
-  2. Eye-line rotation (levels the face so eyes sit on a horizontal plane)
-  3. Margin padding (20-30% border -- artifacts cluster at chin/hairline/neck)
-  4. Resize to model input size (224x224 or 299x299)
-
-Also produces a separate mouth crop (for the §4a audio-visual sync branch)
-and returns all landmarks re-projected into the final aligned/resized crop's
-coordinate space, so Stage 5's frame-to-frame jitter tracking is comparing
-like-for-like coordinates.
-"""
 import threading
 from dataclasses import dataclass
 from math import atan2, degrees
