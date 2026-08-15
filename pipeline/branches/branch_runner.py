@@ -66,7 +66,12 @@ class BranchRunner:
         phone_detected = False
         phone_confidence = 0.0
         if raw_image_bgr is not None:
-            pres = self.phone_detector.detect(raw_image_bgr, face_bbox)
+            pid_target = getattr(aligned_face, "participant_id", "default")
+            pres = self.phone_detector.detect(
+                raw_image_bgr,
+                face_bbox,
+                participant_id=pid_target
+            )
             phone_detected = pres.phone_detected
             phone_confidence = pres.confidence
 

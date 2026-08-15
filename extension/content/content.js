@@ -562,15 +562,48 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     });
   }
 
-  /* ── Video tile discovery & audio track attachment ── */
+  /* ── Video tile discovery & deduplication ── */
   function scan() {
     const allVideos = Array.from(document.querySelectorAll("video"));
-    const videos = allVideos.filter(v => {
-      const hasFrames = v.videoWidth > 0 && v.videoHeight > 0;
+
+    // 1. Filter genuinely active & visible video tiles
+    const validVideos = allVideos.filter(v => {
+      if (!v || v.paused || v.ended) return false;
+      if (v.videoWidth <= 0 || v.videoHeight <= 0) return false;
       const rect = v.getBoundingClientRect();
-      const isVisible = rect.width > 20 && rect.height > 20;
-      return (hasFrames || isVisible) && !v.paused;
-    }).slice(0, MAX_TILES);
+      if (rect.width < 40 || rect.height < 40) return false;
+      // Filter out off-screen videos
+      if (rect.bottom < 0 || rect.top > window.innerHeight || rect.right < 0 || rect.left > window.innerWidth) return false;
+      return true;
+    });
+
+    // 2. Deduplicate: Group videos by MediaStream or srcObject to eliminate duplicate self-previews / PiP copies
+    const streamMap = new Map();
+    validVideos.forEach((v, idx) => {
+      let streamKey = null;
+      if (v.srcObject && v.srcObject.id) {
+        streamKey = v.srcObject.id;
+      } else if (v.src) {
+        streamKey = v.src;
+      } else {
+        streamKey = `res_${v.videoWidth}_${v.videoHeight}_${idx}`;
+      }
+
+      const rect = v.getBoundingClientRect();
+      const area = rect.width * rect.height;
+
+      // Keep the LARGEST visible video tile for each unique stream (e.g. main grid over small thumbnail preview)
+      if (!streamMap.has(streamKey) || streamMap.get(streamKey).area < area) {
+        streamMap.set(streamKey, { video: v, area: area });
+      }
+    });
+
+    const videos = Array.from(streamMap.values())
+      .map(item => item.video)
+      .slice(0, MAX_TILES);
+
+    // Track active videos and hydrate participant names
+    const activeStreamVideos = new Set(videos);
 
     videos.forEach((v, i) => {
       if (!trackers.has(v)) {
@@ -590,25 +623,35 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       } else {
         // Continuous name hydration: if previously generic (Participant 1), update to real Meet name once DOM hydrates
         const t = trackers.get(v);
-        if (t.id.startsWith("Participant ")) {
-          const betterId = pid(v, i);
-          if (!betterId.startsWith("Participant ")) {
-            const oldId = t.id;
-            t.id = betterId;
-            if (participantVerdicts.has(oldId)) {
-              participantVerdicts.set(betterId, participantVerdicts.get(oldId));
-              participantVerdicts.delete(oldId);
-            }
+        const betterId = pid(v, i);
+        if (betterId && betterId !== t.id && !betterId.startsWith("Participant ")) {
+          const oldId = t.id;
+          t.id = betterId;
+          if (participantVerdicts.has(oldId)) {
+            participantVerdicts.set(betterId, participantVerdicts.get(oldId));
+            participantVerdicts.delete(oldId);
+          }
+          // Tell server to flush old generic participant
+          if (ws && ws.readyState === 1) {
+            try {
+              ws.send(JSON.stringify({ type: "reset_participant", participant_id: oldId }));
+            } catch (_) {}
           }
         }
       }
     });
 
+    // Remove inactive or duplicate trackers
     for (const [v, t] of trackers) {
-      if (!videos.includes(v) || !document.body.contains(v)) {
+      if (!activeStreamVideos.has(v) || !document.body.contains(v)) {
         t.badge?.remove();
         trackers.delete(v);
         participantVerdicts.delete(t.id);
+        if (ws && ws.readyState === 1) {
+          try {
+            ws.send(JSON.stringify({ type: "reset_participant", participant_id: t.id }));
+          } catch (_) {}
+        }
       }
     }
 
@@ -702,6 +745,14 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       const attr = mt.getAttribute("data-participant-name") || mt.getAttribute("data-self-name") || mt.getAttribute("data-participant-id");
       if (attr && isValidName(attr)) return cleanName(attr);
     }
+
+    // 4. Global Google Meet self-name discovery if user is in call
+    const globalSelf = document.querySelector("[data-self-name], [data-user-name], div.poVWob, span.notranslate");
+    if (globalSelf) {
+      const gName = globalSelf.getAttribute("data-self-name") || globalSelf.getAttribute("data-user-name") || globalSelf.textContent.trim();
+      if (isValidName(gName)) return cleanName(gName);
+    }
+
     return "Participant " + (i + 1);
   }
 
@@ -1053,12 +1104,12 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       const v = t.video;
       if (v.videoWidth <= 0 || v.videoHeight <= 0) continue;
 
-      const vw = v.videoWidth || 640;
-      const vh = v.videoHeight || 480;
+      const vw = v.videoWidth || 480;
+      const vh = v.videoHeight || 360;
       const aspect = vw / vh;
-      let targetW = 640;
-      let targetH = Math.round(640 / aspect);
-      if (targetH > 480) { targetH = 480; targetW = Math.round(480 * aspect); }
+      let targetW = 480;
+      let targetH = Math.round(480 / aspect);
+      if (targetH > 360) { targetH = 360; targetW = Math.round(360 * aspect); }
 
       osc.width = targetW;
       osc.height = targetH;
@@ -1078,7 +1129,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       ws.send(JSON.stringify({
         type: "frame",
         participant_id: t.id,
-        image: osc.toDataURL("image/jpeg", 0.85),
+        image: osc.toDataURL("image/jpeg", 0.80),
         audio: audioB64,
         timestamp: performance.now() / 1000,
       }));

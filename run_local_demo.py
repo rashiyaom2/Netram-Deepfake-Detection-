@@ -51,9 +51,12 @@ if hasattr(sys.stderr, "reconfigure"):
     except Exception:
         pass
 
-# Add project root to sys.path
+# Add project root and local .venv site-packages to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
+venv_site = PROJECT_ROOT / ".venv" / "Lib" / "site-packages"
+if venv_site.exists() and str(venv_site) not in sys.path:
+    sys.path.insert(0, str(venv_site))
 
 from pipeline.config import PipelineConfig
 from pipeline.orchestrator import PipelineOrchestrator
@@ -239,10 +242,25 @@ class DeepfakeExtensionServer:
 
         t_elapsed_ms = (time.perf_counter() - t_start) * 1000.0
 
-        # Explainable AI & Smooth Telemetry
+        # Explainable AI & Smooth Telemetry with inertia
+        p_sy = float(branch_scores.p_sync) if branch_scores.p_sync is not None else 0.0
+        p_vc = float(branch_scores.p_voice_clone) if branch_scores.p_voice_clone is not None else 0.0
+        phone_det = bool(branch_scores.phone_detected)
+        phone_conf = float(branch_scores.phone_confidence)
+        ar_det = bool(branch_scores.ar_filter_detected)
+        ar_conf = float(branch_scores.ar_filter_confidence)
+        filter_type = branch_scores.filter_type or "BEAUTY_FILTER"
+
         score = float(decision.smoothed_score)
+        if phone_det:
+            score = max(score, 0.90)
 
         sb = self.smoothed_branches[participant_id]
+        disp_score = sb.get("disp_score", score)
+        disp_score = (0.22 * score) + (0.78 * disp_score)
+        sb["disp_score"] = disp_score
+        score = disp_score
+
         raw_sp = float(branch_scores.p_spatial)
         raw_fr = float(branch_scores.p_freq)
         raw_te = float(temporal_result.p_temporal)
@@ -254,14 +272,6 @@ class DeepfakeExtensionServer:
         p_te = sb["p_te"] = (0.15 * raw_te) + (0.85 * sb.get("p_te", raw_te))
         p_li = sb["p_li"] = (0.15 * raw_li) + (0.85 * sb.get("p_li", raw_li))
         jitter_val = sb["jitter"] = (0.15 * raw_jit) + (0.85 * sb.get("jitter", raw_jit))
-
-        p_sy = float(branch_scores.p_sync) if branch_scores.p_sync is not None else 0.0
-        p_vc = float(branch_scores.p_voice_clone) if branch_scores.p_voice_clone is not None else 0.0
-        phone_det = bool(branch_scores.phone_detected)
-        phone_conf = float(branch_scores.phone_confidence)
-        ar_det = bool(branch_scores.ar_filter_detected)
-        ar_conf = float(branch_scores.ar_filter_confidence)
-        filter_type = branch_scores.filter_type or "BEAUTY_FILTER"
 
         # Calibration Warmup Phase (first 8 frames / ~2.5s) unless attack detected
         if frame_idx <= 8 and not phone_det and not ar_det:

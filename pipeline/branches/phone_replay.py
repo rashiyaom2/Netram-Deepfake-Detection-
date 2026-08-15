@@ -9,12 +9,12 @@ Employs a multi-modal defense combining:
 1. Deep Learning Object Detection (YOLOv8, COCO classes: cell phone, screen/tv, laptop)
 2. Rectilinear Screen Bezel & Screen Contour Geometry (aspect ratio, face enclosure, extent)
 3. High-Frequency Moiré Subpixel Grid 2D Spectral Analysis
-4. Temporal History Smoothing to prevent single-frame flickering
+4. Per-Participant Temporal History & Hysteresis Smoothing to prevent flickering
 """
 from dataclasses import dataclass
 import logging
 import os
-from collections import deque
+from collections import defaultdict, deque
 from typing import Optional, Tuple, List, Dict, Any
 import numpy as np
 import cv2
@@ -48,9 +48,9 @@ class PhoneReplayDetector:
     def __init__(
         self,
         model_path: str = "models/yolov8n.pt",
-        conf_threshold: float = 0.20,
+        conf_threshold: float = 0.22,
         iou_threshold: float = 0.45,
-        smoothing_window: int = 5,
+        smoothing_window: int = 6,
         min_frames_present: int = 2,
         enable_bezel_analysis: bool = True,
         enable_moire_analysis: bool = True,
@@ -63,17 +63,28 @@ class PhoneReplayDetector:
         self.enable_bezel_analysis = enable_bezel_analysis
         self.enable_moire_analysis = enable_moire_analysis
 
-        self.history: deque = deque(maxlen=smoothing_window)
-        self.last_confidence_history: deque = deque(maxlen=smoothing_window)
-        self.last_source_history: deque = deque(maxlen=smoothing_window)
-        self.last_bbox_history: deque = deque(maxlen=smoothing_window)
+        # Per-participant state to prevent crosstalk in multi-person calls
+        self.p_history: Dict[str, deque] = defaultdict(lambda: deque(maxlen=smoothing_window))
+        self.p_confs: Dict[str, deque] = defaultdict(lambda: deque(maxlen=smoothing_window))
+        self.p_sources: Dict[str, deque] = defaultdict(lambda: deque(maxlen=smoothing_window))
+        self.p_bboxes: Dict[str, deque] = defaultdict(lambda: deque(maxlen=smoothing_window))
+        self.p_confirmed_state: Dict[str, bool] = defaultdict(bool)
+
         self._yolo_model = None
         self._yolo_initialized = False
 
         self._init_yolo_model()
 
+    def reset_participant(self, participant_id: str):
+        """Flushes participant history on leave or stream reset."""
+        self.p_history.pop(participant_id, None)
+        self.p_confs.pop(participant_id, None)
+        self.p_sources.pop(participant_id, None)
+        self.p_bboxes.pop(participant_id, None)
+        self.p_confirmed_state.pop(participant_id, None)
+
     def _init_yolo_model(self):
-        """Initializes YOLOv8 neural phone detector."""
+        """Initializes YOLOv8 neural phone detector with automatic virtualenv resolution."""
         if self._yolo_initialized:
             return
         self._yolo_initialized = True
@@ -87,7 +98,16 @@ class PhoneReplayDetector:
         chosen_path = next((p for p in candidate_paths if p and os.path.exists(p)), "yolov8n.pt")
 
         try:
-            from ultralytics import YOLO
+            try:
+                from ultralytics import YOLO
+            except ImportError:
+                import sys
+                from pathlib import Path
+                venv_site = Path(__file__).resolve().parents[2] / ".venv" / "Lib" / "site-packages"
+                if venv_site.exists() and str(venv_site) not in sys.path:
+                    sys.path.insert(0, str(venv_site))
+                from ultralytics import YOLO
+
             self._yolo_model = YOLO(chosen_path)
             logger.info(f"YOLOv8 Phone Detector initialized successfully with {chosen_path}")
         except Exception as e:
@@ -97,10 +117,12 @@ class PhoneReplayDetector:
     def detect(
         self,
         image_bgr: np.ndarray,
-        face_bbox: Optional[Tuple[int, int, int, int]] = None
+        face_bbox: Optional[Tuple[int, int, int, int]] = None,
+        participant_id: str = "default"
     ) -> PhoneDetectionResult:
         """
         Executes multi-modal phone & screen replay detection on a single frame.
+        Tracks state per-participant with temporal confirmation & hysteresis.
         """
         if image_bgr is None or image_bgr.size == 0:
             return PhoneDetectionResult(phone_detected=False, confidence=0.0, detection_source="CLEAR")
@@ -159,23 +181,41 @@ class PhoneReplayDetector:
                 details = moire_details
                 face_inside = True
 
-        # Update temporal smoothing buffers
-        self.history.append(instant_detected)
-        self.last_confidence_history.append(instant_conf)
-        self.last_source_history.append(detection_source)
-        if best_bbox:
-            self.last_bbox_history.append(best_bbox)
+        # Update per-participant temporal smoothing buffers
+        hist = self.p_history[participant_id]
+        confs = self.p_confs[participant_id]
+        sources = self.p_sources[participant_id]
+        bboxes = self.p_bboxes[participant_id]
 
-        # Evaluate smoothed trigger
-        history_hits = sum(self.history)
-        if instant_detected or history_hits >= self.min_frames_present:
-            final_conf = max(instant_conf, max(self.last_confidence_history, default=0.85))
-            final_source = detection_source if detection_source != "CLEAR" else next((s for s in reversed(self.last_source_history) if s != "CLEAR"), "HYBRID")
-            final_bbox = best_bbox or (self.last_bbox_history[-1] if self.last_bbox_history else None)
+        hist.append(instant_detected)
+        confs.append(instant_conf)
+        sources.append(detection_source)
+        if best_bbox:
+            bboxes.append(best_bbox)
+
+        # Hysteresis & multi-frame confirmation:
+        # Require >= min_frames_present to flip ON, and 0 in recent 3 frames to flip OFF
+        history_hits = sum(hist)
+        was_confirmed = self.p_confirmed_state[participant_id]
+
+        if not was_confirmed:
+            if instant_detected and (history_hits >= self.min_frames_present or instant_conf >= 0.80):
+                self.p_confirmed_state[participant_id] = True
+        else:
+            # Active attack state — persist until multiple consecutive clean frames
+            if history_hits == 0:
+                self.p_confirmed_state[participant_id] = False
+
+        is_confirmed = self.p_confirmed_state[participant_id]
+
+        if is_confirmed:
+            final_conf = max(instant_conf, max(confs, default=0.85))
+            final_source = detection_source if detection_source != "CLEAR" else next((s for s in reversed(sources) if s != "CLEAR"), "HYBRID")
+            final_bbox = best_bbox or (bboxes[-1] if bboxes else None)
 
             return PhoneDetectionResult(
                 phone_detected=True,
-                confidence=float(np.clip(max(final_conf, 0.85), 0.0, 1.0)),
+                confidence=float(np.clip(max(final_conf, 0.88), 0.0, 1.0)),
                 detection_source=final_source,
                 phone_bbox=final_bbox,
                 aspect_ratio=aspect,
@@ -198,12 +238,13 @@ class PhoneReplayDetector:
                 return []
 
         try:
+            # Use native 480/640 resolution with low latency CPU optimization
             results = self._yolo_model.predict(
                 frame_bgr,
                 classes=COCO_DISPLAY_CLASS_IDS,
                 conf=self.conf_threshold,
                 iou=self.iou_threshold,
-                imgsz=640,
+                imgsz=480,
                 verbose=False,
             )
 
@@ -258,8 +299,8 @@ class PhoneReplayDetector:
 
         # High-pass filter via Laplacian to isolate high-frequency textures
         lap = cv2.Laplacian(gray, cv2.CV_32F)
-        lap_energy = np.var(lap)
-        if lap_energy < 50.0:  # Nominal smooth human face texture has low Laplacian variance
+        lap_energy = float(np.var(lap))
+        if lap_energy < 50.0:  # Smooth natural skin has low Laplacian variance
             return False, 0.0, ""
 
         # 2D FFT
@@ -329,7 +370,6 @@ class PhoneReplayDetector:
                     if bw <= 0 or bh <= 0:
                         continue
 
-                    # Overlap with face bounding box
                     ox1 = max(bx, fx)
                     oy1 = max(by, fy)
                     ox2 = min(bx + bw, fx + fw)

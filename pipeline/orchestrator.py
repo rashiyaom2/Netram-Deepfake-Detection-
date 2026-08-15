@@ -269,6 +269,13 @@ class PipelineOrchestrator:
         self._decision_engine.reset_participant(participant_id)
         logger.info(f"Removed participant {participant_id}")
 
+    def reset_participant(self, participant_id: str) -> None:
+        """Flushes all pipeline state for a participant (temporal, fusion, phone detector)."""
+        self.remove_participant(participant_id)
+        if hasattr(self._branch_runner, "phone_detector") and hasattr(self._branch_runner.phone_detector, "reset_participant"):
+            self._branch_runner.phone_detector.reset_participant(participant_id)
+        logger.info(f"Completely reset participant pipeline state: {participant_id}")
+
     def reset_tracker(self, participant_id: str) -> None:
         """Explicitly reset state for a participant who rejoined."""
         if participant_id in self._temporal_trackers:
