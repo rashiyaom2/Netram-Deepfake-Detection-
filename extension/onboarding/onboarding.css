@@ -241,11 +241,17 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-/* ── Minimal Cards ── */
-.hero-cards, .steps-grid {
+.hero-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
+  margin-bottom: auto;
+}
+
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
   margin-bottom: auto;
 }
 

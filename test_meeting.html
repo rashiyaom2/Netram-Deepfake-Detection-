@@ -48,7 +48,7 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 16px 28px;
+      padding: 14px 28px;
       background: rgba(15, 20, 34, 0.85);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--card-border);
@@ -64,8 +64,8 @@
     }
 
     .brand-icon {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       border-radius: 12px;
       background: linear-gradient(135deg, #0ea5e9, #6366f1);
       display: flex;
@@ -75,13 +75,13 @@
     }
 
     .brand-icon svg {
-      width: 22px;
-      height: 22px;
+      width: 20px;
+      height: 20px;
       color: #fff;
     }
 
     .brand-title {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: 700;
       letter-spacing: -0.02em;
       background: linear-gradient(to right, #ffffff, #94a3b8);
@@ -98,7 +98,6 @@
       border-radius: 6px;
       background: rgba(56, 189, 248, 0.15);
       color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
     }
 
     .header-actions {
@@ -112,12 +111,12 @@
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
-      border-radius: 999px;
-      background: rgba(16, 185, 129, 0.12);
-      border: 1px solid rgba(16, 185, 129, 0.25);
+      border-radius: 20px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.2);
       font-size: 12px;
       font-weight: 500;
-      color: #34d399;
+      color: #38bdf8;
     }
 
     .status-dot {
@@ -126,12 +125,12 @@
       border-radius: 50%;
       background: #10b981;
       box-shadow: 0 0 10px #10b981;
-      animation: pulse 2s infinite;
+      animation: pulse-dot 2s infinite ease-in-out;
     }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.6; transform: scale(0.9); }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.2); opacity: 0.7; }
     }
 
     /* ── Main Layout ── */
@@ -139,31 +138,29 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      padding: 24px 28px;
-      gap: 20px;
-      max-width: 1440px;
+      padding: 20px 28px;
+      gap: 18px;
+      max-width: 1700px;
       margin: 0 auto;
       width: 100%;
     }
 
-    /* ── Meeting Top Stats Bar ── */
+    /* Meeting metadata & controls top bar */
     .meeting-meta-bar {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 16px;
-      padding: 14px 20px;
       background: var(--card-bg);
       border: 1px solid var(--card-border);
       border-radius: 16px;
+      padding: 12px 20px;
       backdrop-filter: blur(12px);
     }
 
     .meta-group {
       display: flex;
       align-items: center;
-      gap: 24px;
+      gap: 20px;
     }
 
     .meta-stat {
@@ -173,17 +170,16 @@
     }
 
     .meta-stat-label {
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-muted);
+      font-size: 10.5px;
       text-transform: uppercase;
       letter-spacing: 0.05em;
+      color: var(--text-muted);
     }
 
     .meta-stat-val {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
-      color: #f1f5f9;
+      color: #e2e8f0;
       font-family: 'JetBrains Mono', monospace;
     }
 
@@ -199,7 +195,7 @@
       gap: 8px;
       padding: 8px 16px;
       border-radius: 10px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.2s ease;
@@ -229,34 +225,27 @@
       background: rgba(255, 255, 255, 0.12);
     }
 
-    .btn-danger {
-      background: rgba(239, 68, 68, 0.15);
-      border-color: rgba(239, 68, 68, 0.3);
-      color: #f87171;
-    }
-
-    .btn-danger:hover {
-      background: rgba(239, 68, 68, 0.25);
+    /* ── Meeting Stage Container (Grid + Chat Sidebar) ── */
+    .meeting-stage-container {
+      display: flex;
+      gap: 20px;
+      flex: 1;
+      min-height: 520px;
     }
 
     /* ── Participant Video Grid ── */
     .video-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 20px;
+      gap: 16px;
       flex: 1;
-    }
-
-    @media (max-width: 900px) {
-      .video-grid {
-        grid-template-columns: 1fr;
-      }
+      transition: all 0.3s ease;
     }
 
     .video-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 20px;
+      border-radius: 18px;
       overflow: hidden;
       position: relative;
       aspect-ratio: 16 / 9;
@@ -301,102 +290,82 @@
     }
 
     .card-label {
-      background: rgba(0, 0, 0, 0.65);
+      background: rgba(15, 20, 34, 0.75);
       backdrop-filter: blur(10px);
-      padding: 6px 12px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #ffffff;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11.5px;
+      font-weight: 500;
+      color: #f1f5f9;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
     }
 
     .audio-indicator {
       display: flex;
       align-items: center;
       gap: 2px;
-      height: 12px;
+      height: 14px;
     }
 
     .audio-bar {
-      width: 3px;
-      background: #38bdf8;
-      border-radius: 2px;
-      animation: soundwave 1s ease-in-out infinite;
+      width: 2.5px;
+      height: 100%;
+      background: #10b981;
+      border-radius: 1px;
+      animation: audio-bounce 0.8s infinite ease-in-out alternate;
     }
 
-    .audio-bar:nth-child(1) { height: 4px; animation-delay: 0.1s; }
-    .audio-bar:nth-child(2) { height: 10px; animation-delay: 0.2s; }
-    .audio-bar:nth-child(3) { height: 7px; animation-delay: 0.3s; }
+    .audio-bar:nth-child(2) { animation-delay: 0.2s; }
+    .audio-bar:nth-child(3) { animation-delay: 0.4s; }
 
-    @keyframes soundwave {
-      0%, 100% { transform: scaleY(0.4); }
-      50% { transform: scaleY(1.2); }
+    @keyframes audio-bounce {
+      0% { height: 20%; }
+      100% { height: 100%; }
     }
 
-    /* ── On-Card Model Telemetry HUD ── */
+    /* ── In-Card Telemetry HUD ── */
     .card-telemetry-hud {
       position: absolute;
-      bottom: 14px;
-      left: 16px;
-      right: 16px;
-      background: rgba(10, 14, 26, 0.85);
-      backdrop-filter: blur(12px);
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      background: rgba(10, 14, 26, 0.88);
+      backdrop-filter: blur(14px);
       border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 12px;
-      padding: 10px 14px;
+      padding: 8px 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
       z-index: 10;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.3s ease;
     }
 
     .hud-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
-      letter-spacing: 0.05em;
       text-transform: uppercase;
+      letter-spacing: 0.05em;
       color: #94a3b8;
     }
 
     .hud-threat-tag {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 2px 8px;
+      padding: 1px 7px;
       border-radius: 6px;
-      text-transform: uppercase;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
     }
 
-    .hud-threat-tag.clear {
-      background: rgba(16, 185, 129, 0.2);
-      color: #34d399;
-      border: 1px solid rgba(16, 185, 129, 0.4);
-    }
-
-    .hud-threat-tag.calibrating {
-      background: rgba(139, 92, 246, 0.2);
-      color: #c084fc;
-      border: 1px solid rgba(139, 92, 246, 0.4);
-    }
-
-    .hud-threat-tag.moderate, .hud-threat-tag.high {
-      background: rgba(245, 158, 11, 0.2);
-      color: #fbbf24;
-      border: 1px solid rgba(245, 158, 11, 0.4);
-    }
-
-    .hud-threat-tag.critical {
-      background: rgba(239, 68, 68, 0.2);
-      color: #f87171;
-      border: 1px solid rgba(239, 68, 68, 0.4);
-    }
+    .hud-threat-tag.clear { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+    .hud-threat-tag.warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+    .hud-threat-tag.critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
 
     .hud-bars-grid {
       display: grid;
@@ -411,7 +380,7 @@
     }
 
     .hud-bar-label {
-      font-size: 10px;
+      font-size: 9.5px;
       color: #94a3b8;
       display: flex;
       justify-content: space-between;
@@ -431,6 +400,261 @@
       border-radius: 2px;
       transition: width 0.3s ease, background-color 0.3s ease;
     }
+
+    /* ═══════════════════════════════════════════════════════════════
+       GOOGLE MEET IN-CALL CHAT DRAWER
+       ═══════════════════════════════════════════════════════════════ */
+    .meet-chat-sidebar {
+      width: 360px;
+      background: rgba(15, 20, 34, 0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--card-border);
+      border-radius: 18px;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+      transition: width 0.3s ease, opacity 0.3s ease;
+      overflow: hidden;
+    }
+
+    .meet-chat-sidebar.collapsed {
+      display: none;
+    }
+
+    .chat-header {
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .chat-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .chat-close-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 16px;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 50%;
+      transition: color 0.15s;
+    }
+    .chat-close-btn:hover { color: #ffffff; }
+
+    .chat-privacy-notice {
+      background: rgba(56, 189, 248, 0.07);
+      border-bottom: 1px solid rgba(56, 189, 248, 0.15);
+      padding: 8px 16px;
+      font-size: 10.5px;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+
+    .chat-messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .chat-msg-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      animation: msgFadeIn 0.25s ease;
+    }
+    @keyframes msgFadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .chat-msg-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+    }
+
+    .chat-msg-sender {
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    .chat-msg-time {
+      color: #64748b;
+      font-size: 10px;
+    }
+
+    .chat-msg-bubble {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #f1f5f9;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    /* Netram AI Compliance Broadcast Card inside Chat */
+    .chat-bot-card {
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(99, 102, 241, 0.12));
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      border-radius: 14px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
+    }
+
+    .bot-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .bot-identity {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .bot-shield-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
+    }
+
+    .bot-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .bot-verified-pill {
+      font-size: 9px;
+      font-weight: 700;
+      color: #10b981;
+      background: rgba(16, 185, 129, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .bot-card-body {
+      font-size: 11.5px;
+      color: #e2e8f0;
+      line-height: 1.45;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .bot-bullet {
+      display: flex;
+      align-items: flex-start;
+      gap: 6px;
+      font-size: 11px;
+      color: #cbd5e1;
+    }
+
+    .legal-cert-link-btn {
+      align-self: flex-start;
+      background: rgba(56, 189, 248, 0.2);
+      border: 1px solid rgba(56, 189, 248, 0.4);
+      color: #7dd3fc;
+      font-size: 10.5px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      margin-top: 4px;
+    }
+    .legal-cert-link-btn:hover {
+      background: rgba(56, 189, 248, 0.35);
+      color: #ffffff;
+    }
+
+    /* Chat Input Area */
+    .chat-input-wrapper {
+      padding: 12px 16px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(10, 14, 24, 0.7);
+    }
+
+    .quick-chips-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+    }
+
+    .chip-quick-msg {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #94a3b8;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .chip-quick-msg:hover {
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+    }
+
+    .chat-input-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 6px 10px;
+    }
+
+    .chat-textarea {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #f8fafc;
+      font-family: inherit;
+      font-size: 12px;
+      resize: none;
+      height: 24px;
+      max-height: 70px;
+    }
+
+    .chat-send-btn {
+      background: #0ea5e9;
+      border: none;
+      color: #ffffff;
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s;
+    }
+    .chat-send-btn:hover { background: #0284c7; transform: scale(1.05); }
 
     /* ── Bottom Interactive Control Dock ── */
     .control-dock {
@@ -463,6 +687,7 @@
       justify-content: center;
       cursor: pointer;
       transition: all 0.2s ease;
+      position: relative;
     }
 
     .dock-btn:hover {
@@ -473,6 +698,21 @@
     .dock-btn.active {
       background: #ef4444;
       border-color: #f87171;
+    }
+
+    .dock-btn.chat-active {
+      background: rgba(14, 165, 233, 0.25);
+      border-color: #38bdf8;
+      color: #38bdf8;
+    }
+
+    .dock-btn-badge {
+      position: absolute;
+      top: -4px; right: -4px;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: #38bdf8;
+      box-shadow: 0 0 8px #38bdf8;
     }
 
     .dock-btn svg {
@@ -563,98 +803,133 @@
       </div>
     </div>
 
-    <!-- 4-Participant Video Grid -->
-    <div class="video-grid">
-      <!-- Participant 1: Alice (Authentic / Live Camera Stream) -->
-      <div class="video-card" id="card-alice" data-participant-id="participant_alice">
-        <div class="card-top-bar">
-          <span class="card-label">
-            <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
-            Alice (Authentic Video Feed)
-          </span>
-          <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+    <!-- Meeting Stage Container (Grid + Chat Sidebar) -->
+    <div class="meeting-stage-container">
+      <!-- 4-Participant Video Grid -->
+      <div class="video-grid" id="main-video-grid">
+        <!-- Participant 1: Alice (Authentic / Live Camera Stream) -->
+        <div class="video-card" id="card-alice" data-participant-id="participant_alice">
+          <div class="card-top-bar">
+            <span class="card-label">
+              <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+              Alice (Authentic Video Feed)
+            </span>
+            <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+          </div>
+          <canvas id="c1" width="640" height="480" style="display:none;"></canvas>
+          <video id="v1" autoplay muted playsinline></video>
+          <!-- Telemetry HUD -->
+          <div class="card-telemetry-hud" id="hud-alice">
+            <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag clear" id="tag-alice">CLEAR</span></div>
+            <div class="hud-bars-grid">
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-alice"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-alice"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-alice"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-alice"></div></div></div>
+            </div>
+          </div>
         </div>
-        <canvas id="c1" width="640" height="480" style="display:none;"></canvas>
-        <video id="v1" autoplay muted playsinline></video>
-        <!-- Telemetry HUD -->
-        <div class="card-telemetry-hud" id="hud-alice">
-          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag clear" id="tag-alice">CLEAR</span></div>
-          <div class="hud-bars-grid">
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-alice"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-alice"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-alice"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-alice">0%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-alice"></div></div></div>
+
+        <!-- Participant 2: Bob (Deepfake Face Swap Simulation) -->
+        <div class="video-card" id="card-bob" data-participant-id="participant_bob">
+          <div class="card-top-bar">
+            <span class="card-label">
+              <span style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
+              Bob (Deepfake Synthesized Feed)
+            </span>
+            <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+          </div>
+          <canvas id="c2" width="640" height="480" style="display:none;"></canvas>
+          <video id="v2" autoplay muted playsinline></video>
+          <!-- Telemetry HUD -->
+          <div class="card-telemetry-hud" id="hud-bob">
+            <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag critical" id="tag-bob">CRITICAL</span></div>
+            <div class="hud-bars-grid">
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-bob">85%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-bob" style="width:85%; background:#ef4444;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-bob">78%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-bob" style="width:78%; background:#ef4444;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-bob">91%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-bob" style="width:91%; background:#ef4444;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-bob">12%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-bob" style="width:12%; background:#10b981;"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Participant 3: Charlie (Static Photo / Presentation Attack) -->
+        <div class="video-card" id="card-charlie" data-participant-id="participant_charlie">
+          <div class="card-top-bar">
+            <span class="card-label">
+              <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>
+              Charlie (Static Replay / Presentation Attack)
+            </span>
+          </div>
+          <canvas id="c3" width="640" height="480" style="display:none;"></canvas>
+          <video id="v3" autoplay muted playsinline></video>
+          <!-- Telemetry HUD -->
+          <div class="card-telemetry-hud" id="hud-charlie">
+            <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag high" id="tag-charlie">HIGH RISK</span></div>
+            <div class="hud-bars-grid">
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-charlie">25%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-charlie" style="width:25%; background:#10b981;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-charlie">30%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-charlie" style="width:30%; background:#10b981;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-charlie">20%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-charlie" style="width:20%; background:#10b981;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-charlie">96%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-charlie" style="width:96%; background:#ef4444;"></div></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Participant 4: David (Verified Multi-Modal Speaker) -->
+        <div class="video-card" id="card-david" data-participant-id="participant_david">
+          <div class="card-top-bar">
+            <span class="card-label">
+              <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
+              David (Verified Multi-Modal Stream)
+            </span>
+            <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+          </div>
+          <canvas id="c4" width="640" height="480" style="display:none;"></canvas>
+          <video id="v4" autoplay muted playsinline></video>
+          <!-- Telemetry HUD -->
+          <div class="card-telemetry-hud" id="hud-david">
+            <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag clear" id="tag-david">CLEAR</span></div>
+            <div class="hud-bars-grid">
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-david">4%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-david" style="width:4%; background:#10b981;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-david">6%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-david" style="width:6%; background:#10b981;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-david">2%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-david" style="width:2%; background:#10b981;"></div></div></div>
+              <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-david">1%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-david" style="width:1%; background:#10b981;"></div></div></div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Participant 2: Bob (Deepfake Face Swap Simulation) -->
-      <div class="video-card" id="card-bob" data-participant-id="participant_bob">
-        <div class="card-top-bar">
-          <span class="card-label">
-            <span style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span>
-            Bob (Deepfake Synthesized Feed)
+      <!-- Google Meet Styled In-Call Chat Sidebar -->
+      <aside class="meet-chat-sidebar" id="meet-chat-sidebar">
+        <div class="chat-header">
+          <span class="chat-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            In-call messages
           </span>
-          <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+          <button class="chat-close-btn" id="btn-close-chat" title="Close chat">✕</button>
         </div>
-        <canvas id="c2" width="640" height="480" style="display:none;"></canvas>
-        <video id="v2" autoplay muted playsinline></video>
-        <!-- Telemetry HUD -->
-        <div class="card-telemetry-hud" id="hud-bob">
-          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag critical" id="tag-bob">CRITICAL</span></div>
-          <div class="hud-bars-grid">
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-bob">85%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-bob" style="width:85%; background:#ef4444;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-bob">78%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-bob" style="width:78%; background:#ef4444;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-bob">91%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-bob" style="width:91%; background:#ef4444;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-bob">12%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-bob" style="width:12%; background:#10b981;"></div></div></div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Participant 3: Charlie (Static Photo / Presentation Attack) -->
-      <div class="video-card" id="card-charlie" data-participant-id="participant_charlie">
-        <div class="card-top-bar">
-          <span class="card-label">
-            <span style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span>
-            Charlie (Static Replay / Presentation Attack)
-          </span>
+        <div class="chat-privacy-notice">
+          Messages can be seen by people in this call and are deleted when the call ends.
         </div>
-        <canvas id="c3" width="640" height="480" style="display:none;"></canvas>
-        <video id="v3" autoplay muted playsinline></video>
-        <!-- Telemetry HUD -->
-        <div class="card-telemetry-hud" id="hud-charlie">
-          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag high" id="tag-charlie">HIGH RISK</span></div>
-          <div class="hud-bars-grid">
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-charlie">25%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-charlie" style="width:25%; background:#10b981;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-charlie">30%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-charlie" style="width:30%; background:#10b981;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-charlie">20%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-charlie" style="width:20%; background:#10b981;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-charlie">96%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-charlie" style="width:96%; background:#ef4444;"></div></div></div>
-          </div>
-        </div>
-      </div>
 
-      <!-- Participant 4: David (Verified Multi-Modal Speaker) -->
-      <div class="video-card" id="card-david" data-participant-id="participant_david">
-        <div class="card-top-bar">
-          <span class="card-label">
-            <span style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span>
-            David (Verified Multi-Modal Stream)
-          </span>
-          <div class="audio-indicator"><span class="audio-bar"></span><span class="audio-bar"></span><span class="audio-bar"></span></div>
+        <div class="chat-messages-container" id="testbed-chat-messages">
+          <!-- Populated dynamically -->
         </div>
-        <canvas id="c4" width="640" height="480" style="display:none;"></canvas>
-        <video id="v4" autoplay muted playsinline></video>
-        <!-- Telemetry HUD -->
-        <div class="card-telemetry-hud" id="hud-david">
-          <div class="hud-header"><span>Forensic Telemetry</span><span class="hud-threat-tag clear" id="tag-david">CLEAR</span></div>
-          <div class="hud-bars-grid">
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>ViT Spatial</span><b id="val-sp-david">4%</b></span><div class="hud-track"><div class="hud-fill" id="bar-sp-david" style="width:4%; background:#10b981;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Spectral CNN</span><b id="val-fr-david">6%</b></span><div class="hud-track"><div class="hud-fill" id="bar-fr-david" style="width:6%; background:#10b981;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Temporal GRU</span><b id="val-tg-david">2%</b></span><div class="hud-track"><div class="hud-fill" id="bar-tg-david" style="width:2%; background:#10b981;"></div></div></div>
-            <div class="hud-bar-item"><span class="hud-bar-label"><span>Liveness EAR</span><b id="val-li-david">1%</b></span><div class="hud-track"><div class="hud-fill" id="bar-li-david" style="width:1%; background:#10b981;"></div></div></div>
+
+        <div class="chat-input-wrapper">
+          <div class="quick-chips-row">
+            <button type="button" class="chip-quick-msg" id="quick-post-legal">📢 Post Legal Notice</button>
+            <button type="button" class="chip-quick-msg" id="quick-check-audio">🎤 Check Voice</button>
+          </div>
+          <div class="chat-input-bar">
+            <textarea class="chat-textarea" id="netram-test-chat-input" placeholder="Send a message to everyone" rows="1"></textarea>
+            <button class="chat-send-btn" id="netram-test-chat-send" title="Send message">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            </button>
           </div>
         </div>
-      </div>
+      </aside>
     </div>
 
     <!-- Bottom Dock -->
@@ -663,6 +938,10 @@
         <button class="dock-btn" id="dock-mic" title="Microphone"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></button>
         <button class="dock-btn" id="dock-cam" title="Camera"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg></button>
         <button class="dock-btn" id="dock-screen" title="Screen Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button>
+        <button class="dock-btn chat-active" id="dock-chat" title="Toggle Meeting Chat">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          <span class="dock-btn-badge" id="chat-badge-dot"></span>
+        </button>
       </div>
 
       <!-- Live Synthetic Anomaly Injector Controls -->
@@ -890,7 +1169,81 @@
       }
     }
 
-    // Initialize all streams
+    /* ═══════════════════════════════════════════════════════════════
+       IN-MEETING CHAT SYSTEM & AUTOMATED LEGAL NOTICE BROADCASTER
+       ═══════════════════════════════════════════════════════════════ */
+    function addChatMessage(sender, text, isBot = false) {
+      const container = document.getElementById("testbed-chat-messages");
+      if (!container) return;
+
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      const wrap = document.createElement("div");
+      wrap.className = "chat-msg-item";
+
+      if (isBot) {
+        wrap.innerHTML = `
+          <div class="chat-msg-meta">
+            <span class="chat-msg-sender" style="color:#38bdf8;">${sender}</span>
+            <span class="chat-msg-time">${timeStr}</span>
+          </div>
+          <div class="chat-bot-card">
+            <div class="bot-card-header">
+              <div class="bot-identity">
+                <span class="bot-shield-dot"></span>
+                <span class="bot-name">Netram AI Shield Notice</span>
+              </div>
+              <span class="bot-verified-pill">Zero-Retention Verified</span>
+            </div>
+            <div class="bot-card-body">
+              <p><b>Real-time neural deepfake & synthetic media integrity monitoring is active in this session.</b></p>
+              <div class="bot-bullet">
+                <span>🔒</span>
+                <span><b>Participant Protection Guarantee:</b> Streams are inspected ephemerally in RAM. No video clips or voice audio are stored or reused.</span>
+              </div>
+              <div class="bot-bullet">
+                <span>📋</span>
+                <span><b>Terms:</b> Session ID: <code>NETRAM-SEC-8821</code> · GDPR & CCPA Zero-Retention Compliant.</span>
+              </div>
+              <button type="button" class="legal-cert-link-btn" id="btn-view-terms-inline">
+                📜 View Full Legal Certificate & Terms
+              </button>
+            </div>
+          </div>`;
+      } else {
+        wrap.innerHTML = `
+          <div class="chat-msg-meta">
+            <span class="chat-msg-sender">${sender}</span>
+            <span class="chat-msg-time">${timeStr}</span>
+          </div>
+          <div class="chat-msg-bubble">${escapeHtml(text)}</div>`;
+      }
+
+      container.appendChild(wrap);
+      container.scrollTop = container.scrollHeight;
+
+      // Attach listener to inline terms button
+      const inlineBtn = wrap.querySelector("#btn-view-terms-inline");
+      if (inlineBtn) {
+        inlineBtn.addEventListener("click", () => {
+          const modal = document.getElementById("netram-legal-modal");
+          if (modal) {
+            modal.classList.add("netram-modal-visible");
+          } else {
+            alert("Netram Legal Agreement:\n• Zero Video Clip Storage\n• Ephemeral volatile RAM analysis\n• Session #NETRAM-SEC-8821\n• Guaranteed safe participant handling.");
+          }
+        });
+      }
+    }
+
+    function escapeHtml(s) {
+      return (s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function broadcastNetramDisclaimer() {
+      addChatMessage("Netram AI Defense Bot", "", true);
+    }
+
+    // Initialize all streams and chat
     window.addEventListener("load", () => {
       createPhotorealisticStream('c1', 'v1', 'alice');
       createPhotorealisticStream('c2', 'v2', 'bob');
@@ -919,6 +1272,66 @@
       setupSimBtn("sim-freeze", "freeze");
       setupSimBtn("sim-desync", "desync");
       setupSimBtn("sim-voice", "voice");
+
+      // Chat Drawer interactions
+      const chatSidebar = document.getElementById("meet-chat-sidebar");
+      const dockChatBtn = document.getElementById("dock-chat");
+      const closeChatBtn = document.getElementById("btn-close-chat");
+      const chatInput = document.getElementById("netram-test-chat-input");
+      const chatSendBtn = document.getElementById("netram-test-chat-send");
+
+      dockChatBtn.addEventListener("click", () => {
+        chatSidebar.classList.toggle("collapsed");
+        dockChatBtn.classList.toggle("chat-active", !chatSidebar.classList.contains("collapsed"));
+        document.getElementById("chat-badge-dot").style.display = "none";
+      });
+
+      closeChatBtn.addEventListener("click", () => {
+        chatSidebar.classList.add("collapsed");
+        dockChatBtn.classList.remove("chat-active");
+      });
+
+      function handleSendMessage() {
+        const text = chatInput.value.trim();
+        if (!text) return;
+        if (text.includes("Netram AI") || text.includes("Defense Notice")) {
+          broadcastNetramDisclaimer();
+        } else {
+          addChatMessage("You", text, false);
+        }
+        chatInput.value = "";
+      }
+
+      chatSendBtn.addEventListener("click", handleSendMessage);
+      chatInput.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          handleSendMessage();
+        }
+      });
+
+      document.getElementById("quick-post-legal").addEventListener("click", () => {
+        broadcastNetramDisclaimer();
+      });
+
+      document.getElementById("quick-check-audio").addEventListener("click", () => {
+        addChatMessage("You", "Can you verify if Alice's audio stream has any TTS synthesis anomalies?", false);
+        setTimeout(() => {
+          addChatMessage("Netram AI Defense Bot", "Acoustic analysis complete: Alice's audio exhibits 100% natural vocal tract resonance with 0.0% AASIST synthetic marker probability. Verified authentic.", false);
+        }, 1200);
+      });
+
+      // Automated Netram AI Legal & Privacy announcement 1.5s after meeting launch
+      setTimeout(() => {
+        broadcastNetramDisclaimer();
+      }, 1500);
+
+      // Listen for window postMessage events from content script
+      window.addEventListener("message", (evt) => {
+        if (evt.data && evt.data.type === "NETRAM_CHAT_DISCLAIMER") {
+          broadcastNetramDisclaimer();
+        }
+      });
     });
   </script>
 </body>

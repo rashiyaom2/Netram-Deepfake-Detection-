@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aegis Shield</title>
+  <title>Netram AI Shield</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 
@@ -17,7 +17,7 @@
         <span class="light minimize"></span>
         <span class="light maximize"></span>
       </div>
-      <span class="header-title">Aegis Shield</span>
+      <span class="header-title">Netram AI Shield</span>
       <span id="conn-pill" class="conn-pill offline">
         <span class="conn-dot"></span>
         <span id="conn-text">Offline</span>
@@ -44,6 +44,31 @@
           <h2 class="threat-label" id="threat-label">Awaiting Analysis</h2>
           <p class="threat-sublabel" id="threat-sublabel">Connect to the inference engine to begin real-time monitoring.
           </p>
+        </div>
+      </section>
+
+      <!-- ─── Participant Legal Liability & Terms Shield Banner ─── -->
+      <section class="card compliance-card" id="compliance-card">
+        <div class="card-row-header">
+          <span class="card-icon shield-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="m9 12 2 2 4-4"/>
+            </svg>
+          </span>
+          <span class="card-title">Participant Protection & Terms</span>
+          <span class="cert-pill">Zero-Retention</span>
+        </div>
+        <p class="compliance-desc">
+          All participant streams are processed ephemerally. No video clips or biometric face vectors are ever stored, recorded, or reused.
+        </p>
+        <div class="compliance-action-row">
+          <button type="button" class="btn-micro" id="btn-open-legal-popup">
+            📜 View Legal Agreement
+          </button>
+          <button type="button" class="btn-micro accent" id="btn-broadcast-chat-popup">
+            💬 Broadcast to Call Chat
+          </button>
         </div>
       </section>
 
@@ -98,7 +123,7 @@
         </div>
       </section>
 
-      <!-- ─── Expandable Forensics (hidden by default) ─── -->
+      <!-- ─── Expandable Forensics ─── -->
       <section class="card expandable-card" id="forensics-card">
         <button class="expand-toggle" id="expand-btn" type="button">
           <span class="card-icon">
@@ -160,6 +185,11 @@
             </svg>
           </span>
           <span class="card-title">Settings</span>
+        </div>
+        <div class="setting-row">
+          <div><span class="s-title">Google Meet Chat Disclaimer</span><br><span class="s-desc">Auto-broadcast legal liability notice in in-call chat</span></div>
+          <label class="toggle"><input type="checkbox" id="toggle-chat-notice" checked><span
+              class="toggle-slider"></span></label>
         </div>
         <div class="setting-row">
           <div><span class="s-title">Video Overlay Badges</span><br><span class="s-desc">Show trust indicators on video

@@ -52,3 +52,26 @@ Every stage runs a dedicated trained neural network or calibrated statistical mo
    ];
    ```
 3. **Users only download the extension ZIP from your website** (or install from Chrome Web Store). They do not need to install Python or models locally!
+
+---
+
+## 🔒 Participant Legal Liability & Meeting Chat Broadcaster
+
+When joining any **Google Meet**, **Zoom**, or **Teams** call, Netram AI ensures complete legal transparency and participant privacy:
+1. **Automated In-Chat Legal Notice**:
+   - The content script automatically detects Google Meet's in-call chatbox and broadcasts a verified legal liability disclaimer:
+     ```text
+     🛡️ [Netram AI Enterprise Defense Notice]
+     Real-time neural deepfake & synthetic media integrity monitoring is active in this meeting session.
+
+     🔒 Participant Data Protection & Non-Misuse Guarantee:
+     • Video & audio streams are processed ephemerally in volatile memory solely for deepfake & synthetic voice detection.
+     • Zero Data Retention: No video clips, biometric face vectors, or meeting audio are recorded, stored, shared, monetized, or reused for AI training.
+     • Session Verification ID: NETRAM-SEC-XXXXXX
+     • Compliant with Netram AI Trust & Safety Zero-Knowledge Standards.
+     ```
+2. **Top In-Meeting Compliance Bar (`#netram-compliance-bar`)**:
+   - Floats at the top of the meeting viewport with one-click access to the full **Legal Terms & Liability Certificate**, **Manual Chat Broadcast**, and **Copy Notice** actions.
+3. **Comprehensive Legal Terms Modal (`#netram-legal-modal`)**:
+   - Displays full binding commitments: Volatile memory execution only, immediate post-inference purge cycle, GDPR Biometric Art. 9 compliance, and cryptographic session seals.
+

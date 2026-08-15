@@ -464,6 +464,75 @@ body {
   margin: 0;
 }
 
+/* ── Participant Protection & Compliance Card ── */
+.compliance-card {
+  background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), rgba(16, 185, 129, 0.05)) !important;
+  border: 1px solid rgba(56, 189, 248, 0.25) !important;
+}
+
+.shield-icon {
+  color: #38bdf8 !important;
+}
+
+.cert-pill {
+  font-size: 9px;
+  font-weight: 700;
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.15);
+  padding: 1px 7px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.3px;
+}
+
+.compliance-desc {
+  font-size: 11px;
+  color: #94a3b8;
+  line-height: 1.45;
+  margin-bottom: 9px;
+}
+
+.compliance-action-row {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-micro {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  font-family: var(--font);
+}
+
+.btn-micro:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+.btn-micro.accent {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.35);
+  color: #7dd3fc;
+}
+
+.btn-micro.accent:hover {
+  background: rgba(56, 189, 248, 0.25);
+  border-color: rgba(56, 189, 248, 0.6);
+  color: #ffffff;
+}
+
 /* ── Cards ── */
 .card {
   background: var(--surface);

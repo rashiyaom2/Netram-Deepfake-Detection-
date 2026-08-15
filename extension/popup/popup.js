@@ -38,9 +38,10 @@ function normalizeWsUrl(url) {
 /* ─── Settings ─── */
 function loadSettings() {
   if (chrome.storage?.local) {
-    chrome.storage.local.get(["overlayEnabled", "audioAlertEnabled", "serverUrl"], (r) => {
-      if (r.overlayEnabled !== undefined) document.getElementById("toggle-overlay").checked = r.overlayEnabled;
-      if (r.audioAlertEnabled !== undefined) document.getElementById("toggle-audio").checked = r.audioAlertEnabled;
+    chrome.storage.local.get(["overlayEnabled", "audioAlertEnabled", "autoChatNotice", "serverUrl"], (r) => {
+      if (r.overlayEnabled !== undefined && document.getElementById("toggle-overlay")) document.getElementById("toggle-overlay").checked = r.overlayEnabled;
+      if (r.audioAlertEnabled !== undefined && document.getElementById("toggle-audio")) document.getElementById("toggle-audio").checked = r.audioAlertEnabled;
+      if (r.autoChatNotice !== undefined && document.getElementById("toggle-chat-notice")) document.getElementById("toggle-chat-notice").checked = r.autoChatNotice;
       const input = document.getElementById("input-server-url");
       if (r.serverUrl && r.serverUrl.trim()) {
         configuredServerUrl = normalizeWsUrl(r.serverUrl);
@@ -57,12 +58,37 @@ function loadSettings() {
 }
 
 function setupListeners() {
-  document.getElementById("toggle-overlay").addEventListener("change", (e) => {
+  document.getElementById("toggle-overlay")?.addEventListener("change", (e) => {
     chrome.storage?.local?.set({ overlayEnabled: e.target.checked });
   });
-  document.getElementById("toggle-audio").addEventListener("change", (e) => {
+  document.getElementById("toggle-audio")?.addEventListener("change", (e) => {
     chrome.storage?.local?.set({ audioAlertEnabled: e.target.checked });
   });
+  document.getElementById("toggle-chat-notice")?.addEventListener("change", (e) => {
+    chrome.storage?.local?.set({ autoChatNotice: e.target.checked });
+  });
+
+  // Participant Terms & Legal Modal button
+  document.getElementById("btn-open-legal-popup")?.addEventListener("click", () => {
+    chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: "OPEN_LEGAL_MODAL" });
+      }
+    });
+  });
+
+  // Broadcast Notice to Active Call Chat button
+  const btnBroadcast = document.getElementById("btn-broadcast-chat-popup");
+  btnBroadcast?.addEventListener("click", () => {
+    chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
+      if (tabs && tabs[0]?.id) {
+        chrome.tabs.sendMessage(tabs[0].id, { type: "BROADCAST_CHAT_NOTICE" });
+        btnBroadcast.textContent = "Announced ✓";
+        setTimeout(() => { btnBroadcast.textContent = "💬 Broadcast to Call Chat"; }, 2000);
+      }
+    });
+  });
+
   document.getElementById("btn-sync").addEventListener("click", () => {
     currentEndpointIdx = 0;
     reconnectDelay = 2000;
