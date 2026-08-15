@@ -454,10 +454,22 @@ function setupLaunchListeners() {
       window.open("../test_meeting.html", "_blank");
     }
   });
+  document.getElementById("launch-onboarding-btn")?.addEventListener("click", openOnboarding);
+}
+
+function openOnboarding() {
+  if (hasChrome && chrome.tabs?.create) {
+    chrome.tabs.create({ url: chrome.runtime.getURL("onboarding/onboarding.html") });
+  } else {
+    window.open("../onboarding/onboarding.html", "_blank");
+  }
 }
 
 /* ─── UI View Switching & Action Listeners ─── */
 function setupListeners() {
+  document.getElementById("btn-onboarding-top")?.addEventListener("click", openOnboarding);
+  document.getElementById("btn-open-onboarding")?.addEventListener("click", openOnboarding);
+
   document.getElementById("btn-gear")?.addEventListener("click", () => {
     document.getElementById("view-home")?.classList.add("hidden-left");
     document.getElementById("view-settings")?.classList.remove("hidden-right");

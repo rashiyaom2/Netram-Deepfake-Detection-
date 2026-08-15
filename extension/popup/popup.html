@@ -1187,6 +1187,13 @@
         <span class="conn-dot" id="conn-dot"></span>
         <span class="conn-label" id="conn-text">Offline</span>
       </span>
+      <button class="icon-btn" id="btn-onboarding-top" title="Open Interactive Onboarding Tour">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <line x1="12" y1="16" x2="12" y2="12" />
+          <line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+      </button>
       <button class="icon-btn" id="btn-gear" title="Settings">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
           stroke-linejoin="round">
@@ -1266,6 +1273,7 @@
                 <button type="button" class="quick-launch-chip" id="launch-meet-btn">Google Meet ↗</button>
                 <button type="button" class="quick-launch-chip" id="launch-zoom-btn">Zoom Web ↗</button>
                 <button type="button" class="quick-launch-chip" id="launch-testbed-btn">Sandbox ↗</button>
+                <button type="button" class="quick-launch-chip" id="launch-onboarding-btn">Onboarding ↗</button>
               </div>
             </div>
           </div>
@@ -1395,6 +1403,12 @@
             <button type="button" class="legal-link-btn" id="btn-open-legal">View legal agreement</button>
             <button type="button" class="legal-link-btn" id="btn-broadcast-chat">Broadcast to call chat</button>
           </div>
+        </div>
+
+        <div class="legal-block">
+          <span class="s-title">Interactive Onboarding Tour</span>
+          <p class="legal-note">Walk through the 5-step detection architecture, multi-modal neural branches, HUD controls, and sandbox simulator.</p>
+          <button type="button" class="legal-link-btn" id="btn-open-onboarding" style="width: 100%;">Replay Onboarding Guide ↗</button>
         </div>
       </div>
     </div>

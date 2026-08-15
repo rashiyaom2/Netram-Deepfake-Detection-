@@ -141,11 +141,29 @@ chrome.runtime.onConnect.addListener((port) => {
   }
 });
 
-chrome.runtime.onInstalled.addListener(() => {
-  chrome.storage.local.set({
-    overlayEnabled: true,
-    audioAlertEnabled: true,
-    serverUrl: "ws://127.0.0.1:8765",
+chrome.runtime.onInstalled.addListener((details) => {
+  chrome.storage.local.get(["overlayEnabled", "audioAlertEnabled", "serverUrl"], (res) => {
+    chrome.storage.local.set({
+      overlayEnabled: res.overlayEnabled !== undefined ? res.overlayEnabled : true,
+      audioAlertEnabled: res.audioAlertEnabled !== undefined ? res.audioAlertEnabled : true,
+      serverUrl: res.serverUrl || "ws://127.0.0.1:8765",
+    });
   });
   connectWebSocket();
+
+  // Automatically open the onboarding journey when the extension is added/installed
+  if (details.reason === "install") {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("onboarding/onboarding.html")
+    });
+  }
+});
+
+chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  if (msg.type === "OPEN_ONBOARDING") {
+    chrome.tabs.create({
+      url: chrome.runtime.getURL("onboarding/onboarding.html")
+    });
+    sendResponse({ success: true });
+  }
 });
