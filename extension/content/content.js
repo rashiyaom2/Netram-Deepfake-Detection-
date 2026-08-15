@@ -180,16 +180,42 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
 • Session Verification ID: ${MEETING_SESSION_ID}
 • Compliant with Netram AI Trust & Safety Zero-Knowledge Standards.`;
 
+  let autoNoticeAttempted = false;
+
+  /**
+   * Automatically monitors if user entered an active Google Meet/Teams/Zoom meeting
+   * and triggers the automated participant legal liability notice in chat.
+   */
+  function checkAndBroadcastMeetingNotice() {
+    if (!autoChatNotice || autoNoticeAttempted) return;
+
+    const broadcastKey = "netram_chat_broadcast_sent_" + location.pathname.replace(/[^a-zA-Z0-9]/g, "_");
+    if (sessionStorage.getItem(broadcastKey) === "true") {
+      autoNoticeAttempted = true;
+      return;
+    }
+
+    const inActiveCall = (
+      trackers.size > 0 ||
+      document.querySelector("button[aria-label*='Leave call' i], button[aria-label*='Leave meeting' i], button[aria-label*='Chat' i], [data-allocation-index], #netram-test-chat-input")
+    );
+
+    if (inActiveCall) {
+      autoNoticeAttempted = true;
+      setTimeout(() => {
+        broadcastLegalNoticeToMeetChat(false);
+      }, 1800);
+    }
+  }
+
   /**
    * Broadcasts legal compliance & non-misuse liability notice into Google Meet / Zoom / Teams / Testbed chat.
    */
-  function broadcastLegalNoticeToMeetChat(forceManual = false) {
+  function broadcastLegalNoticeToMeetChat(forceManual = false, retryCount = 0) {
     const broadcastKey = "netram_chat_broadcast_sent_" + location.pathname.replace(/[^a-zA-Z0-9]/g, "_");
     if (!forceManual && sessionStorage.getItem(broadcastKey) === "true") {
       return; // Already announced in this session
     }
-
-    let messageSent = false;
 
     // 1. Google Meet DOM Discovery
     const meetChatToggle = document.querySelector(
@@ -230,14 +256,12 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
             );
             if (sendBtn && !sendBtn.disabled) {
               sendBtn.click();
-              messageSent = true;
             } else {
               // Fallback: Dispatch Enter key
               const enterEvent = new KeyboardEvent("keydown", {
                 bubbles: true, cancelable: true, key: "Enter", code: "Enter", keyCode: 13
               });
               chatInput.dispatchEvent(enterEvent);
-              messageSent = true;
             }
 
             sessionStorage.setItem(broadcastKey, "true");
@@ -247,6 +271,14 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
           console.warn("[Netram AI] Chat automation notice:", err);
         }
       } else {
+        // If not found yet and still within 6 retries, retry in 1.5s
+        if (retryCount < 6) {
+          setTimeout(() => {
+            broadcastLegalNoticeToMeetChat(forceManual, retryCount + 1);
+          }, 1500);
+          return;
+        }
+
         // Fallback for custom sandbox or if chat input wasn't found in DOM
         if (window.postMessage) {
           window.postMessage({
@@ -516,6 +548,9 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
 
     // Update floating HUD visibility based on active camera feeds
     updateHudVisibility();
+
+    // Check if user entered an active meeting to broadcast legal notice to participants
+    checkAndBroadcastMeetingNotice();
   }
 
   function pid(v, i) {

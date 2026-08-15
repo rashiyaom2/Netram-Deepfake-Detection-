@@ -52,7 +52,7 @@
   ],
   "web_accessible_resources": [
     {
-      "resources": ["icons/*", "content/overlay.css", "onboarding/*"],
+      "resources": ["icons/*", "content/overlay.css", "onboarding/*", "legal/*"],
       "matches": ["<all_urls>"]
     }
   ]
