@@ -50,6 +50,39 @@
     });
   });
 
+  // ── Terms & Conditions Acceptance Gating ──
+  const cbTerms = document.getElementById("onboarding-cb-terms");
+  const launchBtn = document.getElementById("btn-launch-meet");
+  const openTestbedBtn = document.getElementById("btn-open-testbed");
+
+  function updateTermsState() {
+    const accepted = cbTerms ? cbTerms.checked : false;
+    if (launchBtn) launchBtn.disabled = !accepted;
+    if (openTestbedBtn) openTestbedBtn.disabled = !accepted;
+
+    if (chrome.storage?.local) {
+      chrome.storage.local.set({
+        termsAccepted: accepted,
+        termsAcceptedTimestamp: accepted ? new Date().toISOString() : null
+      });
+    }
+  }
+
+  if (cbTerms) {
+    cbTerms.addEventListener("change", updateTermsState);
+  }
+
+  // Check initial acceptance state from storage
+  if (chrome.storage?.local) {
+    chrome.storage.local.get(["termsAccepted"], (res) => {
+      if (res.termsAccepted) {
+        if (cbTerms) cbTerms.checked = true;
+        if (launchBtn) launchBtn.disabled = false;
+        if (openTestbedBtn) openTestbedBtn.disabled = false;
+      }
+    });
+  }
+
   // Skip & Launch Meet buttons
   const skipBtn = document.getElementById("btn-skip");
   if (skipBtn) {
@@ -58,16 +91,22 @@
     });
   }
 
-  const launchBtn = document.getElementById("btn-launch-meet");
   if (launchBtn) {
     launchBtn.addEventListener("click", () => {
+      if (!cbTerms?.checked) {
+        alert("Please accept the Terms of Service & Participant Protection Guarantee to continue.");
+        return;
+      }
       window.open("https://meet.google.com/new", "_blank");
     });
   }
 
-  const openTestbedBtn = document.getElementById("btn-open-testbed");
   if (openTestbedBtn) {
     openTestbedBtn.addEventListener("click", () => {
+      if (!cbTerms?.checked) {
+        alert("Please accept the Terms of Service & Participant Protection Guarantee to continue.");
+        return;
+      }
       if (chrome.runtime?.getURL) {
         window.open(chrome.runtime.getURL("test_meeting.html"), "_blank");
       } else {

@@ -54,6 +54,11 @@ class BranchScores:
     p_sync: Optional[float] = None
     av_mismatch_flag: Optional[bool] = None   # video faked / audio real (or vice versa)
     p_voice_clone: Optional[float] = None
+    phone_detected: bool = False
+    phone_confidence: float = 0.0
+    ar_filter_detected: bool = False
+    ar_filter_confidence: float = 0.0
+    filter_type: Optional[str] = None
 
 
 @dataclass
@@ -72,6 +77,11 @@ class FusionInput:
     jitter: float
     pose_confidence: float
     p_liveness: float
+    phone_detected: bool = False
+    phone_confidence: float = 0.0
+    ar_filter_detected: bool = False
+    ar_filter_confidence: float = 0.0
+    filter_type: Optional[str] = None
 
 
 @dataclass
@@ -84,3 +94,8 @@ class FrameDecision:
     review_flag: bool
     block_flag: bool
     av_mismatch_flag: Optional[bool] = None
+    phone_detected: bool = False
+    phone_confidence: float = 0.0
+    ar_filter_detected: bool = False
+    ar_filter_confidence: float = 0.0
+    filter_type: Optional[str] = None

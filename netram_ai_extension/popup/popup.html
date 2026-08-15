@@ -47,6 +47,21 @@
         </div>
       </section>
 
+      <!-- ─── Mandatory Terms Acceptance Banner (shown if not yet accepted) ─── -->
+      <section class="card terms-banner-card" id="terms-banner-card" style="display:none;">
+        <div class="terms-banner-top">
+          <span class="terms-banner-icon">⚖️</span>
+          <div class="terms-banner-info">
+            <span class="terms-banner-title">Action Required: Terms Acceptance</span>
+            <span class="terms-banner-desc">Review & accept Netram AI's Zero-Retention & Participant Protection Terms.</span>
+          </div>
+        </div>
+        <div class="terms-banner-actions">
+          <a href="../legal/terms.html" target="_blank" class="terms-banner-link">📜 View Legal Docs</a>
+          <button type="button" class="btn-terms-accept" id="btn-popup-accept-terms">✓ Accept Terms</button>
+        </div>
+      </section>
+
       <!-- ─── Participant Legal Liability & Terms Shield Banner ─── -->
       <section class="card compliance-card" id="compliance-card">
         <div class="card-row-header">
@@ -222,11 +237,14 @@
 
         <!-- Connection Troubleshooter Box (shown when offline) -->
         <div class="troubleshoot-box" id="troubleshoot-box" style="display:none;">
-          <span class="tb-title">⚡ Connection Troubleshooting:</span>
-          <ol class="tb-list">
-            <li>The cloud engine may be starting up — Render free-tier services sleep after inactivity. Please wait ~30 seconds and click <b>Sync</b>.</li>
-            <li>If still offline, check your internet connection and try refreshing the page.</li>
-            <li>For advanced users: you can run a local server and switch to <code>ws://127.0.0.1:8765</code> above.</li>
+          <span class="tb-title">⚡ Cloud Connection Offline:</span>
+          <p style="font-size:11px; color:rgba(255,255,255,0.7); margin:4px 0 8px 0;">If cloud is initializing or offline, switch to 100% offline local demo mode:</p>
+          <button type="button" id="btn-fallback-local" style="width:100%; display:flex; align-items:center; justify-content:center; gap:6px; background:#10b981; color:#ffffff; border:none; padding:8px 12px; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer;">
+            <span>⚡</span> Switch to Offline Local Engine
+          </button>
+          <ol class="tb-list" style="margin-top:8px;">
+            <li>Run <code>python run_local_demo.py</code> in terminal to start offline engine.</li>
+            <li>No internet connection required — 100% local zero-latency inference.</li>
           </ol>
         </div>
       </section>

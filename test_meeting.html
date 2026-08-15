@@ -951,6 +951,8 @@
         <button class="chip-btn" id="sim-freeze">Static Freeze</button>
         <button class="chip-btn" id="sim-desync">Lip Desync</button>
         <button class="chip-btn" id="sim-voice">Audio Spoof</button>
+        <button class="chip-btn" id="sim-phone">📱 Phone Replay</button>
+        <button class="chip-btn" id="sim-filter">✨ Snapchat Filter</button>
       </div>
     </div>
   </main>
@@ -962,7 +964,9 @@
       jitter: false,
       freeze: false,
       desync: false,
-      voice: false
+      voice: false,
+      phone: false,
+      filter: false
     };
 
     // WebSocket link to real local inference server
@@ -1136,6 +1140,95 @@
           ctx.strokeRect(fx - 65, fy - 55, 130, 120);
         }
 
+        // Phone Screen Replay Attack Simulation (Draws physical smartphone bezel enclosing face)
+        if (anomalyStates.phone && (persona === 'bob' || persona === 'charlie')) {
+          const pw = 240, ph = 420;
+          const px = cx - pw / 2, py = cy - ph / 2 + 10;
+          
+          // Smartphone outer body & dark shadow
+          ctx.save();
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+          ctx.shadowBlur = 25;
+          ctx.fillStyle = '#0f172a';
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(px, py, pw, ph, 30);
+          else ctx.rect(px, py, pw, ph);
+          ctx.fill();
+          ctx.restore();
+
+          // Smartphone metallic frame bezel
+          ctx.strokeStyle = '#64748b';
+          ctx.lineWidth = 6;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(px, py, pw, ph, 30);
+          else ctx.rect(px, py, pw, ph);
+          ctx.stroke();
+
+          // Inner screen active display border
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(px + 8, py + 8, pw - 16, ph - 16, 22);
+          else ctx.rect(px + 8, py + 8, pw - 16, ph - 16);
+          ctx.stroke();
+
+          // Top selfie camera pill notch
+          ctx.fillStyle = '#020617';
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(cx - 28, py + 12, 56, 10, 5);
+          else ctx.rect(cx - 28, py + 12, 56, 10);
+          ctx.fill();
+
+          // Screen glass diagonal specular reflection line
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.09)';
+          ctx.beginPath();
+          ctx.moveTo(px + 12, py + 90);
+          ctx.lineTo(px + 90, py + 12);
+          ctx.lineTo(px + 140, py + 12);
+          ctx.lineTo(px + 12, py + 140);
+          ctx.fill();
+        }
+
+        // Snapchat / Instagram / AR Beauty Filter Simulation
+        if (anomalyStates.filter && (persona === 'bob' || persona === 'charlie')) {
+          // 1. Airbrushed porcelain skin smoothing overlay
+          ctx.fillStyle = 'rgba(254, 215, 226, 0.35)';
+          ctx.beginPath();
+          ctx.ellipse(fx, fy + 10, 75, 95, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 2. High-saturation digital cheek blush circles
+          const blushGradL = ctx.createRadialGradient(fx - 42, fy + 18, 5, fx - 42, fy + 18, 30);
+          blushGradL.addColorStop(0, 'rgba(244, 63, 94, 0.65)');
+          blushGradL.addColorStop(1, 'rgba(244, 63, 94, 0)');
+          ctx.fillStyle = blushGradL;
+          ctx.beginPath();
+          ctx.arc(fx - 42, fy + 18, 30, 0, Math.PI * 2);
+          ctx.fill();
+
+          const blushGradR = ctx.createRadialGradient(fx + 42, fy + 18, 5, fx + 42, fy + 18, 30);
+          blushGradR.addColorStop(0, 'rgba(244, 63, 94, 0.65)');
+          blushGradR.addColorStop(1, 'rgba(244, 63, 94, 0)');
+          ctx.fillStyle = blushGradR;
+          ctx.beginPath();
+          ctx.arc(fx + 42, fy + 18, 30, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 3. Saturated digital lipstick & gloss highlight
+          ctx.fillStyle = 'rgba(225, 29, 72, 0.75)';
+          ctx.beginPath();
+          ctx.ellipse(fx, fy + 46, 24, 8, 0, 0, Math.PI * 2);
+          ctx.fill();
+
+          // 4. AR Eye enlargement highlight ring (Bambi / Anime eye filter)
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.ellipse(fx - 32, fy - 15, 18, 14, 0, 0, Math.PI * 2);
+          ctx.ellipse(fx + 32, fy - 15, 18, 14, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
         requestAnimationFrame(renderFrame);
       }
 
@@ -1272,6 +1365,8 @@
       setupSimBtn("sim-freeze", "freeze");
       setupSimBtn("sim-desync", "desync");
       setupSimBtn("sim-voice", "voice");
+      setupSimBtn("sim-phone", "phone");
+      setupSimBtn("sim-filter", "filter");
 
       // Chat Drawer interactions
       const chatSidebar = document.getElementById("meet-chat-sidebar");

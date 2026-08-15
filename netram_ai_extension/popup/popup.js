@@ -38,7 +38,12 @@ function normalizeWsUrl(url) {
 /* ─── Settings ─── */
 function loadSettings() {
   if (chrome.storage?.local) {
-    chrome.storage.local.get(["overlayEnabled", "audioAlertEnabled", "autoChatNotice", "serverUrl"], (r) => {
+    chrome.storage.local.get(["overlayEnabled", "audioAlertEnabled", "autoChatNotice", "serverUrl", "termsAccepted"], (r) => {
+      const termsBanner = document.getElementById("terms-banner-card");
+      if (termsBanner) {
+        termsBanner.style.display = r.termsAccepted ? "none" : "flex";
+      }
+
       if (r.overlayEnabled !== undefined && document.getElementById("toggle-overlay")) document.getElementById("toggle-overlay").checked = r.overlayEnabled;
       if (r.audioAlertEnabled !== undefined && document.getElementById("toggle-audio")) document.getElementById("toggle-audio").checked = r.audioAlertEnabled;
       if (r.autoChatNotice !== undefined && document.getElementById("toggle-chat-notice")) document.getElementById("toggle-chat-notice").checked = r.autoChatNotice;
@@ -68,8 +73,24 @@ function setupListeners() {
     chrome.storage?.local?.set({ autoChatNotice: e.target.checked });
   });
 
-  // Participant Terms & Legal Modal button
+  // Mandatory Terms Acceptance button in Popup
+  document.getElementById("btn-popup-accept-terms")?.addEventListener("click", () => {
+    chrome.storage?.local?.set({
+      termsAccepted: true,
+      termsAcceptedTimestamp: new Date().toISOString()
+    }, () => {
+      const termsBanner = document.getElementById("terms-banner-card");
+      if (termsBanner) termsBanner.style.display = "none";
+    });
+  });
+
+  // Participant Terms & Legal Docs button
   document.getElementById("btn-open-legal-popup")?.addEventListener("click", () => {
+    if (chrome.tabs?.create) {
+      chrome.tabs.create({ url: chrome.runtime.getURL("legal/terms.html") });
+    } else {
+      window.open("../legal/terms.html", "_blank");
+    }
     chrome.tabs?.query({ active: true, currentWindow: true }, (tabs) => {
       if (tabs && tabs[0]?.id) {
         chrome.tabs.sendMessage(tabs[0].id, { type: "OPEN_LEGAL_MODAL" });
@@ -134,6 +155,14 @@ function setupListeners() {
         btnSaveServer?.click();
       }
     });
+  });
+
+  // Direct offline fallback button
+  document.getElementById("btn-fallback-local")?.addEventListener("click", () => {
+    if (inputServer) {
+      inputServer.value = "ws://127.0.0.1:8765";
+      btnSaveServer?.click();
+    }
   });
 
   // Forensics expand/collapse

@@ -533,6 +533,84 @@ body {
   color: #ffffff;
 }
 
+/* ── Terms Acceptance Banner (Pending state) ── */
+.terms-banner-card {
+  background: linear-gradient(135deg, rgba(251, 191, 36, 0.16), rgba(245, 158, 11, 0.08));
+  border: 1px solid rgba(251, 191, 36, 0.45);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  animation: riseIn 0.3s var(--ease) both;
+}
+
+.terms-banner-top {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.terms-banner-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.terms-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.terms-banner-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #fef08a;
+}
+
+.terms-banner-desc {
+  font-size: 9.5px;
+  color: #fde68a;
+  line-height: 1.35;
+}
+
+.terms-banner-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.terms-banner-link {
+  font-size: 10px;
+  font-weight: 600;
+  color: #7dd3fc;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.terms-banner-link:hover {
+  color: #ffffff;
+}
+
+.btn-terms-accept {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  border: none;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  font-family: var(--font);
+}
+.btn-terms-accept:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+
 /* ── Cards ── */
 .card {
   background: var(--surface);

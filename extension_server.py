@@ -166,8 +166,8 @@ class DeepfakeExtensionServer:
                 "timestamp": timestamp,
             }
 
-        # Stage 4: Multi-Modal Neural Branches (Spatial ONNX ViT + Frequency CNN + AASIST)
-        branch_scores = self.orchestrator._branch_runner.run(aligned)
+        # Stage 4: Multi-Modal Neural Branches (Spatial ViT + Frequency CNN + AASIST + Phone Replay Detector)
+        branch_scores = self.orchestrator._branch_runner.run(aligned, raw_frame.image_bgr, quality.face_bbox)
 
         # Stage 5: Temporal Verification & EAR Blink Anti-Spoofing
         tracker = self.orchestrator._get_temporal_tracker(participant_id)
@@ -194,9 +194,14 @@ class DeepfakeExtensionServer:
         jitter_val = float(temporal_result.jitter_score)
         p_sy = float(branch_scores.p_sync) if branch_scores.p_sync is not None else 0.0
         p_vc = float(branch_scores.p_voice_clone) if branch_scores.p_voice_clone is not None else 0.0
+        phone_det = bool(branch_scores.phone_detected)
+        phone_conf = float(branch_scores.phone_confidence)
+        ar_det = bool(branch_scores.ar_filter_detected)
+        ar_conf = float(branch_scores.ar_filter_confidence)
+        filter_type = branch_scores.filter_type or "BEAUTY_FILTER"
 
-        # Calibration Warmup Phase (first 8 frames / ~2.5s) to prevent false alerts
-        if frame_idx <= 8:
+        # Calibration Warmup Phase (first 8 frames / ~2.5s) to prevent false alerts (unless phone or filter attack detected)
+        if frame_idx <= 8 and not phone_det and not ar_det:
             threat_level = "CALIBRATING"
             threat_label = "Calibrating Neural Baseline (2–4s)..."
             confidence_tier = "Calibrating"
@@ -205,13 +210,13 @@ class DeepfakeExtensionServer:
         else:
             caution_note = "Results reflect multi-branch neural probabilities. Analysis deepens over time."
             # Threat level (5 tiers, stabilized)
-            if score >= 0.82:
+            if phone_det or score >= 0.82:
                 threat_level = "CRITICAL"
-                threat_label = "High-Confidence Synthetic Media"
+                threat_label = "🚨 Phone / Screen Replay Attack Detected" if phone_det else "High-Confidence Synthetic Media"
                 confidence_tier = "Very High"
-            elif score >= 0.65:
-                threat_level = "HIGH"
-                threat_label = "Probable Manipulated Feed"
+            elif ar_det or score >= 0.65:
+                threat_level = "HIGH" if (score >= 0.70 or ar_conf >= 0.65) else "MODERATE"
+                threat_label = f"✨ AR / Beauty Filter Detected ({filter_type.replace('_', ' ').title()})" if ar_det else "Probable Manipulated Feed"
                 confidence_tier = "High"
             elif score >= 0.45:
                 threat_level = "MODERATE"
@@ -236,19 +241,27 @@ class DeepfakeExtensionServer:
             }
             if p_vc > 0.4:
                 signals["Voice Cloning / Synthetic Audio (AASIST)"] = p_vc
+            if phone_det:
+                signals["Physical Phone / Display Screen Replay Spoof"] = phone_conf
+            if ar_det:
+                signals[f"Social Media AR / Beauty Filter ({filter_type})"] = ar_conf
 
             dominant_signal = max(signals, key=signals.get)
             dominant_value = signals[dominant_signal]
 
             # Professional recommendation
             recommendations = []
+            if phone_det:
+                recommendations.append("🚨 Presentation Attack Detected: A physical smartphone / display screen was identified in front of the camera. The video feed is replaying a recording from a mobile screen.")
+            if ar_det:
+                recommendations.append("✨ Social Media / AR Filter Alert: Artificial skin smoothing (airbrushing), geometric landmark morphing, or digital cosmetic overlays identified (characteristic of Snapchat, Instagram, or beauty camera filters).")
             if p_sp > 0.6:
                 recommendations.append("Visual artifacts detected around face boundaries — consistent with GAN/diffusion generation or face-swap blending.")
             if p_fr > 0.5:
                 recommendations.append("Spectral analysis shows atypical high-frequency energy distribution — may indicate AI-upscaled or synthetically generated content.")
             if p_te > 0.5:
                 recommendations.append("Temporal embedding drift detected — frame-to-frame facial features lack natural consistency.")
-            if p_li > 0.6:
+            if p_li > 0.6 and not phone_det:
                 recommendations.append("Insufficient physiological activity (blink rate / micro-motion) — possible static image replay or presentation attack.")
             if jitter_val > 0.35:
                 recommendations.append("Elevated facial landmark instability — face mask boundaries may be jittering between frames.")
@@ -281,6 +294,11 @@ class DeepfakeExtensionServer:
             "review_flag": bool(decision.review_flag),
             "block_flag": bool(decision.block_flag),
             "av_mismatch": bool(decision.av_mismatch_flag) if decision.av_mismatch_flag is not None else False,
+            "phone_detected": phone_det,
+            "phone_confidence": round(phone_conf, 4),
+            "ar_filter_detected": ar_det,
+            "ar_filter_confidence": round(ar_conf, 4),
+            "filter_type": filter_type if ar_det else None,
             # Branch telemetry
             "p_spatial": round(p_sp, 4),
             "p_freq": round(p_fr, 4),
@@ -290,8 +308,8 @@ class DeepfakeExtensionServer:
             "p_voice_clone": round(p_vc, 4),
             "jitter": round(jitter_val, 4),
             # Explainable AI fields
-            "dominant_signal": dominant_signal if frame_idx > 8 else "Baseline Calibrating",
-            "dominant_value": round(dominant_value, 4) if frame_idx > 8 else 0.0,
+            "dominant_signal": dominant_signal if (frame_idx > 8 or phone_det or ar_det) else "Baseline Calibrating",
+            "dominant_value": round(dominant_value, 4) if (frame_idx > 8 or phone_det or ar_det) else 0.0,
             "recommendation": " ".join(recommendations),
             "audit_hash": audit_hash,
             "latency_ms": round(t_elapsed_ms, 2),

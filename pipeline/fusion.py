@@ -214,9 +214,21 @@ class DecisionEngine:
             jitter=temporal_result.jitter_score,
             pose_confidence=pose_confidence,
             p_liveness=temporal_result.p_liveness,
+            phone_detected=branch_scores.phone_detected,
+            phone_confidence=branch_scores.phone_confidence,
         )
         features = build_fusion_feature_vector(fusion_input)
         p_frame = self._fusion_model(features)
+
+        # Presentation Attack Override: If a physical phone/screen is shown, immediately escalate
+        if branch_scores.phone_detected:
+            phone_boost = 0.96 if branch_scores.phone_confidence >= 0.5 else 0.85
+            p_frame = max(p_frame, float(phone_boost))
+
+        # Social Media / AR Beauty Filter Override: Escalate to review level
+        if branch_scores.ar_filter_detected:
+            filter_boost = 0.82 if branch_scores.ar_filter_confidence >= 0.65 else 0.72
+            p_frame = max(p_frame, float(filter_boost))
 
         # Exponential smoothing
         smoothed = exponential_smooth(p_frame, state.smoothed_score, self.cfg.smoothing_alpha)
@@ -226,19 +238,19 @@ class DecisionEngine:
         now = timestamp
 
         # Review threshold
-        if smoothed >= self.cfg.review_threshold:
+        if smoothed >= self.cfg.review_threshold or branch_scores.phone_detected or branch_scores.ar_filter_detected:
             if state.review_sustained_since is None:
                 state.review_sustained_since = now
-            review_flag = (now - state.review_sustained_since) >= self.cfg.sustained_seconds
+            review_flag = (now - state.review_sustained_since) >= self.cfg.sustained_seconds or branch_scores.phone_detected or branch_scores.ar_filter_detected
         else:
             state.review_sustained_since = None
             review_flag = False
 
         # Block threshold
-        if smoothed >= self.cfg.block_threshold:
+        if smoothed >= self.cfg.block_threshold or (branch_scores.phone_detected and branch_scores.phone_confidence >= 0.70):
             if state.block_sustained_since is None:
                 state.block_sustained_since = now
-            block_flag = (now - state.block_sustained_since) >= self.cfg.sustained_seconds
+            block_flag = (now - state.block_sustained_since) >= self.cfg.sustained_seconds or (branch_scores.phone_detected and branch_scores.phone_confidence >= 0.70)
         else:
             state.block_sustained_since = None
             block_flag = False
@@ -252,6 +264,11 @@ class DecisionEngine:
             review_flag=review_flag,
             block_flag=block_flag,
             av_mismatch_flag=av_mismatch_flag or branch_scores.av_mismatch_flag,
+            phone_detected=branch_scores.phone_detected,
+            phone_confidence=branch_scores.phone_confidence,
+            ar_filter_detected=branch_scores.ar_filter_detected,
+            ar_filter_confidence=branch_scores.ar_filter_confidence,
+            filter_type=branch_scores.filter_type,
         )
 
     def reset_participant(self, participant_id: str) -> None:

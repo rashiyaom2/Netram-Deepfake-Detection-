@@ -481,8 +481,11 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
 
         <div class="modal-footer">
           <div class="footer-actions-left">
+            <button class="modal-btn secondary" id="modal-btn-open-doc">
+              <span>📜</span> Full Legal Docs
+            </button>
             <button class="modal-btn secondary" id="modal-btn-copy">
-              <span>📋</span> Copy Legal Statement
+              <span>📋</span> Copy Statement
             </button>
             <button class="modal-btn secondary" id="modal-btn-chat">
               <span>💬</span> Broadcast to Chat
@@ -500,6 +503,10 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     // Event listeners
     document.getElementById("modal-btn-close").addEventListener("click", closeLegalModal);
     document.getElementById("modal-btn-confirm").addEventListener("click", closeLegalModal);
+    document.getElementById("modal-btn-open-doc").addEventListener("click", () => {
+      const url = chrome.runtime?.getURL ? chrome.runtime.getURL("legal/terms.html") : "/legal/terms.html";
+      window.open(url, "_blank");
+    });
     document.getElementById("modal-btn-copy").addEventListener("click", copyLegalNoticeToClipboard);
     document.getElementById("modal-btn-chat").addEventListener("click", () => {
       broadcastLegalNoticeToMeetChat(true);
@@ -624,6 +631,8 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         <div class="insp-row"><span>Temporal GRU</span><span class="iv iv-temporal">—</span></div>
         <div class="insp-row"><span>Liveness EAR</span><span class="iv iv-liveness">—</span></div>
         <div class="insp-row"><span>Voice Clone</span><span class="iv iv-voice">—</span></div>
+        <div class="insp-row iv-phone-row" style="display:none;"><span>Phone Replay</span><span class="iv iv-phone" style="color:#ef4444; font-weight:700;">🚨 DETECTED</span></div>
+        <div class="insp-row iv-filter-row" style="display:none;"><span>AR Beauty Filter</span><span class="iv iv-filter" style="color:#f59e0b; font-weight:700;">✨ DETECTED</span></div>
         <div class="insp-rec" style="display:none;">
           <span class="insp-rec-title">AI Recommendation</span>
           <p class="insp-rec-text"></p>
@@ -772,7 +781,15 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         high: "⚠ Probable Manipulation",
         critical: "🚨 Synthetic Media Detected",
       };
-      if (label) label.textContent = labels[level] || "Analyzing…";
+      if (label) {
+        if (d.phone_detected) {
+          label.textContent = "🚨 Phone Replay Spoof";
+        } else if (d.ar_filter_detected) {
+          label.textContent = "✨ AR Beauty Filter";
+        } else {
+          label.textContent = labels[level] || "Analyzing…";
+        }
+      }
 
       const v = t.video;
       v.className = v.className.replace(/aegis-border-\w+/g, "").trim();
@@ -787,6 +804,16 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       if (q(".iv-temporal")) q(".iv-temporal").textContent = pct(d.p_temporal);
       if (q(".iv-liveness")) q(".iv-liveness").textContent = pct(d.p_liveness);
       if (q(".iv-voice")) q(".iv-voice").textContent = d.p_voice_clone != null ? pct(d.p_voice_clone) : "N/A";
+      
+      const phoneRow = q(".iv-phone-row");
+      if (phoneRow) {
+        phoneRow.style.display = d.phone_detected ? "flex" : "none";
+      }
+
+      const filterRow = q(".iv-filter-row");
+      if (filterRow) {
+        filterRow.style.display = d.ar_filter_detected ? "flex" : "none";
+      }
 
       const recWrap = q(".insp-rec");
       const recText = q(".insp-rec-text");
@@ -795,7 +822,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         recText.textContent = d.recommendation;
       }
 
-      if ((level === "critical" || level === "high") && !t.alerted) { chime(); t.alerted = true; }
+      if ((level === "critical" || level === "high" || d.phone_detected) && !t.alerted) { chime(); t.alerted = true; }
       if (level === "clear" || level === "low" || level === "calibrating") t.alerted = false;
     }
 
@@ -807,8 +834,16 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
 
       const pill = document.getElementById("siri-threat-pill");
       if (pill) {
-        pill.className = "siri-threat-pill " + level;
-        pill.textContent = d.threat_level || "CLEAR";
+        if (d.phone_detected) {
+          pill.className = "siri-threat-pill critical";
+          pill.textContent = "🚨 PHONE REPLAY";
+        } else if (d.ar_filter_detected) {
+          pill.className = "siri-threat-pill moderate";
+          pill.textContent = "✨ AR FILTER";
+        } else {
+          pill.className = "siri-threat-pill " + level;
+          pill.textContent = d.threat_level || "CLEAR";
+        }
       }
 
       const pName = document.getElementById("siri-participant-name");

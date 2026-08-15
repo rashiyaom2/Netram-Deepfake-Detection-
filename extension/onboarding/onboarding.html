@@ -293,10 +293,33 @@
             </div>
           </div>
 
+          <!-- Terms & Condition Acceptance Consent Box (Mandatory Gate) -->
+          <div class="onboarding-terms-card" id="onboarding-terms-card">
+            <div class="terms-card-header">
+              <div class="terms-card-title-group">
+                <span class="terms-shield-icon">📜</span>
+                <div>
+                  <h4 class="terms-title">Participant Protection & Terms Acceptance</h4>
+                  <span class="terms-subtitle">Mandatory zero-retention & non-misuse liability agreement</span>
+                </div>
+              </div>
+              <a href="../legal/terms.html" target="_blank" class="terms-doc-link">
+                <span>View Legal Docs</span> ↗
+              </a>
+            </div>
+
+            <label class="terms-checkbox-label">
+              <input type="checkbox" id="onboarding-cb-terms">
+              <span>
+                I agree to the <a href="../legal/terms.html" target="_blank" class="legal-inline-link">Terms of Service</a>, <a href="../legal/terms.html#sec-non-misuse" target="_blank" class="legal-inline-link">Zero-Retention Non-Misuse Guarantee</a>, and confirm that all video/audio processing is strictly ephemeral in volatile RAM.
+              </span>
+            </label>
+          </div>
+
           <div class="slide-footer launch-footer">
             <button class="secondary-btn prev-btn" data-prev="3">← Back to Sandbox</button>
-            <button class="secondary-btn" id="btn-open-testbed">🌐 Open Full Testbed</button>
-            <button class="primary-btn large-btn" id="btn-launch-meet">🚀 Launch Google Meet</button>
+            <button class="secondary-btn" id="btn-open-testbed" disabled>🌐 Open Full Testbed</button>
+            <button class="primary-btn large-btn" id="btn-launch-meet" disabled>🚀 Launch Google Meet</button>
           </div>
         </div>
       </section>

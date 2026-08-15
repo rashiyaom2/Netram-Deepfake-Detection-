@@ -483,6 +483,97 @@ body {
 .conn-status-dot { width: 7px; height: 7px; border-radius: 50%; background: #94a3b8; flex-shrink: 0; }
 .conn-status-dot.online { background: var(--green); box-shadow: 0 0 8px rgba(16, 185, 129, 0.8); }
 
+/* ── Mandatory Terms Acceptance Card ── */
+.onboarding-terms-card {
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.1));
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: 16px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 14px;
+  margin-bottom: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+.terms-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.terms-card-title-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.terms-shield-icon {
+  font-size: 20px;
+}
+
+.terms-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.terms-subtitle {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.terms-doc-link {
+  color: var(--accent-cyan);
+  text-decoration: none;
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.terms-doc-link:hover {
+  background: rgba(56, 189, 248, 0.3);
+  color: #fff;
+}
+
+.terms-checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #e2e8f0;
+  line-height: 1.45;
+  user-select: none;
+}
+
+.terms-checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-top: 2px;
+  accent-color: #0ea5e9;
+  cursor: pointer;
+}
+
+.legal-inline-link {
+  color: var(--accent-cyan);
+  text-decoration: underline;
+}
+
+/* Disabled button state */
+button:disabled {
+  opacity: 0.45 !important;
+  cursor: not-allowed !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
 /* ── Buttons & Footer ── */
 .slide-footer {
   display: flex;
