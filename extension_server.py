@@ -332,6 +332,8 @@ class DeepfakeExtensionServer:
             "ar_filter_detected": ar_det,
             "ar_filter_confidence": round(ar_conf, 4),
             "filter_type": filter_type if ar_det else None,
+            "blink_detected": bool(decision.blink_detected),
+            "recent_blinks": int(decision.recent_blinks),
             # Branch telemetry
             "p_spatial": round(p_sp, 4),
             "p_freq": round(p_fr, 4),

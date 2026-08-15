@@ -418,6 +418,7 @@ class TemporalTracker:
             if abs(pitch) > self.cfg.max_pose_angle_deg or abs(yaw) > self.cfg.max_pose_angle_deg:
                 head_angle_ok = False
 
+        just_blinked = False
         if head_angle_ok:
             ear = compute_eye_aspect_ratio(curr_landmarks)
             if ear is not None:
@@ -426,7 +427,11 @@ class TemporalTracker:
                     self._ear_history.popleft()
 
                 dyn_thresh = self.get_adaptive_ear_threshold()
-                if ear < dyn_thresh:
+                # Relative EAR dip check: eyes closed if below dynamic threshold OR relative 25% dip from 80th percentile
+                ear_baseline = float(np.percentile([e for _, e in self._ear_history], 80)) if len(self._ear_history) >= 4 else 0.28
+                is_closed = (ear < dyn_thresh) or (ear < ear_baseline * 0.75)
+
+                if is_closed:
                     if not self._is_blinking:
                         self._is_blinking = True
                         self._blink_start_time = now
@@ -435,9 +440,11 @@ class TemporalTracker:
                         self._is_blinking = False
                         if self._blink_start_time is not None:
                             duration = now - self._blink_start_time
-                            if self.cfg.min_blink_duration_s <= duration <= self.cfg.max_blink_duration_s:
+                            # Natural physiological blink duration (handles 3-30 FPS WebRTC sampling)
+                            if (duration <= self.cfg.max_blink_duration_s) or (duration == 0.0):
                                 self._blink_timestamps.append(now)
                                 self._valid_blinks_count += 1
+                                just_blinked = True
                         self._blink_start_time = None
 
         while self._blink_timestamps and (now - self._blink_timestamps[0]) > self.cfg.blink_window_seconds:
@@ -451,45 +458,45 @@ class TemporalTracker:
             self.cfg.frozen_threshold,
         )
 
+        n_blinks = len(self._blink_timestamps)
+
         p_liveness = 0.0
         if len(self._landmark_history) >= 10:
             if stillness_score > 0.35:
-                n_blinks = len(self._blink_timestamps)
                 elapsed = now - self._first_seen_time if self._first_seen_time else 0.0
                 n_frames = len(self._landmark_history)
 
                 # Low-FPS guard: at 3 FPS, blink detection is unreliable.
-                # Natural humans blink ~15-20x/min. At 3 FPS over a 15s window,
-                # we have only 45 frames — many blinks will be missed entirely
-                # because the ~150ms blink falls between two 333ms captures.
-                # Only escalate p_liveness to high values after extended observation
-                # AND if the face is truly frozen (presentation attack / static photo).
                 fps_estimate = n_frames / max(elapsed, 1.0)
                 is_low_fps = fps_estimate < 8.0
 
                 if n_blinks == 0:
                     if is_low_fps:
-                        # Low FPS: cap liveness penalty. Blink absence at low FPS is
-                        # NOT reliable evidence of a presentation attack.
                         if elapsed < 30.0:
-                            # Under 30s of observation: very unreliable at low FPS
                             p_liveness = float(np.clip(stillness_score * 0.15, 0.0, 0.18))
                         else:
-                            # After 30s with zero blinks at any FPS: more suspicious
                             p_liveness = float(np.clip(stillness_score * 0.40, 0.0, 0.45))
                     else:
-                        # High FPS (>= 8): blink detection is reliable
                         if elapsed < 10.0:
                             p_liveness = float(np.clip(stillness_score * 0.30, 0.0, 0.35))
                         else:
                             p_liveness = float(np.clip(stillness_score * 0.75, 0.0, 0.80))
                 else:
-                    # Blinks detected: genuine human, low liveness concern
-                    p_liveness = float(np.clip(stillness_score * 0.12, 0.0, 0.15))
+                    p_liveness = 0.0
             else:
                 p_liveness = 0.0
 
-        return TemporalResult(p_temporal=p_temporal, jitter_score=jitter, p_liveness=p_liveness)
+        # Biological Proof-of-Life ("Blink = Real"): if blinks are verified, presentation attack probability is strictly 0.0
+        if n_blinks > 0 or just_blinked:
+            p_liveness = 0.0
+
+        return TemporalResult(
+            p_temporal=p_temporal,
+            jitter_score=jitter,
+            p_liveness=p_liveness,
+            blink_detected=just_blinked,
+            recent_blinks=n_blinks
+        )
 
     def reset(self) -> None:
         """Clear all history (e.g. when a participant rejoins)."""

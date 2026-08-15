@@ -86,7 +86,11 @@ class TestExtensionServer:
 
     @pytest.mark.asyncio
     async def test_websocket_e2e_communication(self):
-        server = DeepfakeExtensionServer(host="127.0.0.1", port=8768)
+        import socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(('127.0.0.1', 0))
+            free_port = s.getsockname()[1]
+        server = DeepfakeExtensionServer(host="127.0.0.1", port=free_port)
         async with websockets.serve(server.handle_client, server.host, server.port):
             async with websockets.connect(f"ws://{server.host}:{server.port}") as ws:
                 handshake = json.loads(await ws.recv())

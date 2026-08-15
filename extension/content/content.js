@@ -1136,6 +1136,9 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       } else if (d.ar_filter_detected) {
         pill.className = "siri-threat-pill moderate";
         pill.textContent = "AR FILTER";
+      } else if (d.blink_detected || (d.recent_blinks && d.recent_blinks > 0)) {
+        pill.className = "siri-threat-pill clear blink-live";
+        pill.textContent = "BLINK VERIFIED";
       } else {
         pill.className = "siri-threat-pill " + level;
         pill.textContent = d.threat_level || "CLEAR";

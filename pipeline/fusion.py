@@ -221,9 +221,23 @@ class DecisionEngine:
             p_liveness=temporal_result.p_liveness,
             phone_detected=branch_scores.phone_detected,
             phone_confidence=branch_scores.phone_confidence,
+            blink_detected=temporal_result.blink_detected,
+            recent_blinks=temporal_result.recent_blinks,
         )
         features = build_fusion_feature_vector(fusion_input)
         p_frame = self._fusion_model(features)
+
+        # ─── BIOLOGICAL PROOF-OF-LIFE ANCHOR ("Blink = Real") ───
+        # When natural eye-blinking is verified, the participant is confirmed to be a living human.
+        # Spurious camera noise, lighting changes, or minor compression glitches must NOT trigger alarms.
+        if (temporal_result.recent_blinks > 0 or temporal_result.blink_detected) and not branch_scores.phone_detected:
+            # Active dampener to ensure verified living humans remain firmly in the CLEAN zone
+            auth_dampener = 0.10 if temporal_result.blink_detected else 0.25
+            p_frame = float(p_frame * auth_dampener)
+
+            # Flush any residual threat score from state immediately
+            if state.smoothed_score is not None and state.smoothed_score > 0.15:
+                state.smoothed_score = exponential_smooth(p_frame, state.smoothed_score, 0.92)
 
         # Presentation Attack Override: If a physical phone/screen is shown, immediately escalate
         if branch_scores.phone_detected:
@@ -290,6 +304,8 @@ class DecisionEngine:
             ar_filter_detected=branch_scores.ar_filter_detected,
             ar_filter_confidence=branch_scores.ar_filter_confidence,
             filter_type=branch_scores.filter_type,
+            blink_detected=temporal_result.blink_detected,
+            recent_blinks=temporal_result.recent_blinks,
         )
 
     def reset_participant(self, participant_id: str) -> None:

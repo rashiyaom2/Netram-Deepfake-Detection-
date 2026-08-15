@@ -66,6 +66,8 @@ class TemporalResult:
     p_temporal: float
     jitter_score: float
     p_liveness: float
+    blink_detected: bool = False
+    recent_blinks: int = 0
 
 
 @dataclass
@@ -82,6 +84,8 @@ class FusionInput:
     ar_filter_detected: bool = False
     ar_filter_confidence: float = 0.0
     filter_type: Optional[str] = None
+    blink_detected: bool = False
+    recent_blinks: int = 0
 
 
 @dataclass
@@ -99,3 +103,5 @@ class FrameDecision:
     ar_filter_detected: bool = False
     ar_filter_confidence: float = 0.0
     filter_type: Optional[str] = None
+    blink_detected: bool = False
+    recent_blinks: int = 0
