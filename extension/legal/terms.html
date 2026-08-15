@@ -1,363 +1,402 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Netram AI — Legal Terms, Privacy Policy & Participant Protection Guarantee</title>
+  <title>Netram AI — Terms of Service, Privacy Policy & Participant Protection Guarantee</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <style>
     :root {
-      --bg: #07090e;
-      --bg-surface: #0f1422;
-      --bg-card: rgba(19, 26, 44, 0.75);
-      --card-border: rgba(255, 255, 255, 0.09);
-      --accent-cyan: #38bdf8;
-      --accent-purple: #818cf8;
-      --accent-gold: #fbbf24;
-      --green: #10b981;
-      --red: #ef4444;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
+      --paper: #f4f3ef;
+      --paper-raised: #fbfaf7;
+      --ink: #1c1d1f;
+      --ink-soft: #4b4d51;
+      --ink-faint: #83858a;
+      --rule: #d8d6cf;
+      --rule-strong: #b9b6ab;
+      --navy: #1f3350;
+      --navy-soft: #46608a;
+      --seal: #7a6a4a;
+      --ok: #3c6e52;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
 
     body {
-      background: var(--bg);
-      background-image: 
-        radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(129, 140, 248, 0.08) 0px, transparent 50%);
-      color: var(--text-main);
-      font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-      line-height: 1.6;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 15px;
+      line-height: 1.7;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* ── Header ── */
+    h1,
+    h2,
+    h3,
+    h4 {
+      font-family: 'Newsreader', Georgia, serif;
+      font-weight: 500;
+      letter-spacing: -0.01em;
+      color: var(--ink);
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* ── Letterhead ── */
     header {
-      background: rgba(15, 20, 34, 0.9);
-      backdrop-filter: blur(20px);
-      border-bottom: 1px solid var(--card-border);
+      background: var(--paper-raised);
+      border-bottom: 1px solid var(--rule-strong);
       position: sticky;
       top: 0;
       z-index: 50;
-      padding: 16px 36px;
+      padding: 20px 40px;
+    }
+
+    .letterhead-inner {
+      max-width: 1180px;
+      margin: 0 auto;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 20px;
     }
 
     .brand-group {
       display: flex;
       align-items: center;
-      gap: 14px;
+      gap: 16px;
     }
 
-    .brand-icon {
-      width: 40px; height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, #0ea5e9, #6366f1);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 0 20px rgba(14, 165, 233, 0.4);
+    .brand-mark {
+      width: 38px;
+      height: 38px;
+      border: 1px solid var(--navy);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--navy);
+      flex-shrink: 0;
     }
-    .brand-icon svg { width: 22px; height: 22px; color: #fff; }
+
+    .brand-mark svg {
+      width: 18px;
+      height: 18px;
+    }
 
     .brand-info h1 {
-      font-size: 18px; font-weight: 700;
-      background: linear-gradient(to right, #ffffff, #94a3b8);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      font-size: 17px;
+      font-weight: 500;
     }
 
     .brand-info p {
-      font-size: 11.5px; color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      color: var(--ink-faint);
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      margin-top: 2px;
     }
 
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 18px;
     }
 
     .cert-badge {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      background: rgba(16, 185, 129, 0.15);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #34d399;
+      gap: 7px;
+      font-family: 'Inter', sans-serif;
       font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
+      font-weight: 500;
+      letter-spacing: 0.03em;
+      color: var(--ok);
+      text-transform: uppercase;
+    }
+
+    .cert-badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--ok);
+      display: inline-block;
     }
 
     .btn-action {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--card-border);
-      color: #e2e8f0;
-      padding: 6px 14px;
-      border-radius: 8px;
+      background: none;
+      border: 1px solid var(--rule-strong);
+      color: var(--ink-soft);
+      padding: 7px 14px;
+      border-radius: 3px;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 500;
       cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
+      transition: all 0.15s;
+      font-family: 'Inter', sans-serif;
     }
-    .btn-action:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+
+    .btn-action:hover {
+      border-color: var(--navy);
+      color: var(--navy);
+    }
 
     /* ── Layout ── */
     .legal-container {
-      max-width: 1200px;
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 40px 24px;
+      padding: 56px 40px 80px;
       display: grid;
-      grid-template-columns: 280px 1fr;
-      gap: 36px;
+      grid-template-columns: 240px 1fr;
+      gap: 56px;
       flex: 1;
       width: 100%;
     }
 
     @media (max-width: 900px) {
-      .legal-container { grid-template-columns: 1fr; }
+      .legal-container {
+        grid-template-columns: 1fr;
+        padding: 40px 20px 60px;
+      }
+
+      aside {
+        position: static !important;
+        order: 2;
+      }
     }
 
-    /* ── Sticky Sidebar TOC ── */
+    /* ── Sidebar TOC ── */
     aside {
       position: sticky;
-      top: 100px;
+      top: 96px;
       align-self: start;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-
-    .toc-card {
-      background: var(--bg-card);
-      border: 1px solid var(--card-border);
-      border-radius: 18px;
-      padding: 20px;
-      backdrop-filter: blur(16px);
+      gap: 28px;
     }
 
     .toc-title {
-      font-size: 12px;
-      font-weight: 700;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: var(--text-muted);
-      margin-bottom: 14px;
+      letter-spacing: 0.08em;
+      color: var(--ink-faint);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--rule);
     }
 
     .toc-links {
       display: flex;
       flex-direction: column;
-      gap: 8px;
       list-style: none;
     }
 
     .toc-links a {
-      color: #cbd5e1;
+      color: var(--ink-soft);
       text-decoration: none;
-      font-size: 12.5px;
+      font-size: 13px;
+      padding: 7px 0 7px 14px;
+      border-left: 1px solid var(--rule);
+      transition: all 0.15s;
+      display: block;
+    }
+
+    .toc-links a:hover,
+    .toc-links a.active {
+      color: var(--navy);
+      border-left: 1px solid var(--navy);
+    }
+
+    .sidebar-note {
+      font-size: 12px;
+      color: var(--ink-faint);
+      line-height: 1.6;
+      padding-top: 20px;
+      border-top: 1px solid var(--rule);
+    }
+
+    /* ── Main Document ── */
+    main {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      background: var(--paper-raised);
+      border: 1px solid var(--rule);
+    }
+
+    /* Document Header Block */
+    .doc-header {
+      padding: 48px 52px 36px;
+      border-bottom: 1px double var(--rule-strong);
+    }
+
+    .doc-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px 24px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--ink-faint);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+
+    .doc-meta-row span b {
+      color: var(--ink-soft);
       font-weight: 500;
-      padding: 6px 10px;
-      border-radius: 8px;
-      transition: all 0.2s;
+    }
+
+    .doc-title {
+      font-size: 30px;
+      font-weight: 500;
+      line-height: 1.25;
+      margin-bottom: 14px;
+    }
+
+    .doc-subtitle {
+      font-size: 14.5px;
+      color: var(--ink-soft);
+      line-height: 1.7;
+      max-width: 68ch;
+    }
+
+    /* Legal Sections */
+    .legal-section {
+      padding: 36px 52px;
+      border-bottom: 1px solid var(--rule);
+      scroll-margin-top: 96px;
+    }
+
+    .legal-section:last-of-type {
+      border-bottom: none;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 18px;
+    }
+
+    .section-badge-num {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--ink-faint);
+      flex-shrink: 0;
+    }
+
+    .section-title {
+      font-size: 19px;
+      font-weight: 500;
+    }
+
+    .legal-body {
+      font-size: 14px;
+      color: var(--ink-soft);
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      max-width: 72ch;
+    }
+
+    .legal-body p {
+      line-height: 1.75;
+    }
+
+    .legal-body b {
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    /* Callouts — restrained, no color-fill panels */
+    .callout-box {
+      border-left: 2px solid var(--navy);
+      padding: 4px 0 4px 18px;
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: var(--ink-soft);
+      max-width: 72ch;
+    }
+
+    .callout-box b {
+      color: var(--ink);
+    }
+
+    /* Guarantee list — plain, quiet */
+    .guarantees-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0;
+      margin-top: 6px;
+      border: 1px solid var(--rule);
+    }
+
+    @media (max-width: 640px) {
+      .guarantees-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .g-card {
+      padding: 16px 20px;
+      border-right: 1px solid var(--rule);
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .g-card:nth-child(2n) {
+      border-right: none;
+    }
+
+    .g-card:nth-last-child(-n+2) {
+      border-bottom: none;
+    }
+
+    .g-card h4 {
+      font-family: 'Inter', sans-serif;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    .toc-links a:hover, .toc-links a.active {
-      background: rgba(56, 189, 248, 0.12);
-      color: var(--accent-cyan);
-    }
-
-    .sidebar-accept-box {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(99, 102, 241, 0.1));
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      border-radius: 16px;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .sidebar-accept-box h4 {
-      font-size: 13px;
-      font-weight: 700;
-      color: #fff;
-    }
-
-    .sidebar-accept-box p {
-      font-size: 11px;
-      color: #94a3b8;
-      line-height: 1.4;
-    }
-
-    .btn-accept-sidebar {
-      background: linear-gradient(135deg, #0284c7, #2563eb);
-      color: #fff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-family: inherit;
-    }
-    .btn-accept-sidebar:hover { transform: translateY(-1px); }
-
-    /* ── Main Legal Content ── */
-    main {
-      display: flex;
-      flex-direction: column;
-      gap: 32px;
-    }
-
-    .hero-strip {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.12), rgba(99, 102, 241, 0.08));
-      border: 1px solid rgba(56, 189, 248, 0.25);
-      border-radius: 20px;
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .hero-meta {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      font-size: 11.5px;
-      color: var(--text-muted);
-    }
-
-    .hero-title {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: #ffffff;
-    }
-
-    .hero-subtitle {
-      font-size: 14px;
-      color: #cbd5e1;
-      line-height: 1.6;
-    }
-
-    /* ── Legal Sections ── */
-    .legal-card {
-      background: var(--bg-card);
-      border: 1px solid var(--card-border);
-      border-radius: 20px;
-      padding: 28px;
-      backdrop-filter: blur(16px);
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      scroll-margin-top: 100px;
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    }
-
-    .section-badge-num {
-      width: 28px; height: 28px;
-      border-radius: 8px;
-      background: rgba(56, 189, 248, 0.15);
-      color: var(--accent-cyan);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: 12px;
-      font-family: 'JetBrains Mono', monospace;
-    }
-
-    .section-title {
-      font-size: 18px;
-      font-weight: 700;
-      color: #ffffff;
-    }
-
-    .legal-body {
-      font-size: 13.5px;
-      color: #cbd5e1;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .legal-body p { line-height: 1.65; }
-
-    /* Highlight Callouts */
-    .callout-box {
-      border-radius: 14px;
-      padding: 16px 20px;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      font-size: 13px;
-      line-height: 1.55;
-    }
-
-    .callout-box.gold {
-      background: rgba(251, 191, 36, 0.08);
-      border: 1px solid rgba(251, 191, 36, 0.3);
-      color: #fef3c7;
-    }
-
-    .callout-box.cyan {
-      background: rgba(56, 189, 248, 0.08);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: #e0f2fe;
-    }
-
-    .callout-box.green {
-      background: rgba(16, 185, 129, 0.08);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      color: #d1fae5;
-    }
-
-    .callout-icon { font-size: 20px; flex-shrink: 0; }
-
-    /* Key Guarantees Grid */
-    .guarantees-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
-      margin-top: 6px;
-    }
-
-    @media (max-width: 600px) {
-      .guarantees-grid { grid-template-columns: 1fr; }
-    }
-
-    .g-card {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 14px;
-      padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .g-card h4 {
-      font-size: 13px; font-weight: 700; color: #fff;
-      display: flex; align-items: center; gap: 8px;
+    .g-card h4::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      background: var(--navy);
+      display: inline-block;
     }
 
     .g-card p {
-      font-size: 12px; color: var(--text-muted); line-height: 1.5;
+      font-size: 12.5px;
+      color: var(--ink-faint);
+      line-height: 1.6;
     }
 
     /* Clause Lists */
@@ -365,40 +404,62 @@
       list-style: none;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
+      max-width: 72ch;
     }
 
     .clause-list li {
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      font-size: 13px;
-      color: #cbd5e1;
+      gap: 12px;
+      font-size: 14px;
+      color: var(--ink-soft);
+      line-height: 1.7;
+      counter-increment: clause;
     }
 
     .clause-list li span.dot {
-      color: var(--accent-cyan);
-      font-weight: bold;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--ink-faint);
+      font-size: 12px;
+      flex-shrink: 0;
+      padding-top: 3px;
     }
 
-    /* Interactive Acceptance Block at Bottom */
-    .bottom-acceptance-card {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(99, 102, 241, 0.18));
-      border: 1px solid rgba(56, 189, 248, 0.4);
-      border-radius: 20px;
-      padding: 28px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+    /* ── Acceptance Block ── */
+    .acceptance-block {
+      padding: 44px 52px 48px;
+      background: var(--paper);
     }
 
     .acceptance-header {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .acceptance-header h3 {
+      font-size: 20px;
+      font-weight: 500;
+    }
+
+    .acceptance-tag {
+      font-family: 'Inter', sans-serif;
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--seal);
+    }
+
+    .acceptance-body-text {
+      font-size: 13.5px;
+      color: var(--ink-soft);
+      max-width: 68ch;
+      margin-bottom: 22px;
+      line-height: 1.7;
     }
 
     .acceptance-checkbox-label {
@@ -407,275 +468,278 @@
       gap: 12px;
       cursor: pointer;
       font-size: 13.5px;
-      color: #ffffff;
-      font-weight: 500;
+      color: var(--ink);
+      line-height: 1.6;
       user-select: none;
+      margin-bottom: 24px;
+      max-width: 60ch;
     }
 
     .acceptance-checkbox-label input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      margin-top: 2px;
-      accent-color: #0ea5e9;
+      width: 16px;
+      height: 16px;
+      margin-top: 3px;
+      accent-color: var(--navy);
       cursor: pointer;
+      flex-shrink: 0;
     }
 
     .btn-accept-large {
-      align-self: flex-start;
-      background: linear-gradient(135deg, #0284c7 0%, #2563eb 100%);
-      color: #fff;
+      background: var(--navy);
+      color: #fdfcf9;
       border: none;
-      padding: 12px 28px;
-      border-radius: 12px;
-      font-size: 14px;
-      font-weight: 700;
+      padding: 13px 30px;
+      border-radius: 2px;
+      font-size: 13.5px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
       cursor: pointer;
-      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.4);
-      transition: all 0.2s;
-      font-family: inherit;
+      transition: background 0.15s;
+      font-family: 'Inter', sans-serif;
     }
-    .btn-accept-large:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(2, 132, 199, 0.6); }
-    .btn-accept-large:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .btn-accept-large:hover {
+      background: var(--navy-soft);
+    }
+
+    .btn-accept-large:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      background: var(--ink-faint);
+    }
 
     /* Footer */
     footer {
-      border-top: 1px solid var(--card-border);
-      padding: 24px;
+      border-top: 1px solid var(--rule-strong);
+      padding: 26px 40px;
       text-align: center;
-      font-size: 12px;
-      color: var(--text-muted);
-      background: var(--bg-surface);
+      font-size: 11.5px;
+      color: var(--ink-faint);
+      background: var(--paper-raised);
+      letter-spacing: 0.02em;
     }
   </style>
 </head>
+
 <body>
-  <!-- Header -->
+  <!-- Letterhead -->
   <header>
-    <div class="brand-group">
-      <div class="brand-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          <path d="m9 12 2 2 4-4"/>
-        </svg>
+    <div class="letterhead-inner">
+      <div class="brand-group">
+        <div class="brand-mark">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="m9 12 2 2 4-4" />
+          </svg>
+        </div>
+        <div class="brand-info">
+          <h1>Netram AI — Legal Trust Center</h1>
+          <p>Terms of Service · Privacy Policy · Participant Protection Guarantee</p>
+        </div>
       </div>
-      <div class="brand-info">
-        <h1>Netram AI Shield — Legal Trust Center</h1>
-        <p>Enterprise Terms of Service, Privacy Policy & Participant Protection Guarantee</p>
+      <div class="header-actions">
+        <span class="cert-badge">Zero-retention certified</span>
+        <button class="btn-action" onclick="window.print()">Print agreement</button>
       </div>
-    </div>
-    <div class="header-actions">
-      <span class="cert-badge">🛡️ Zero-Retention Certified</span>
-      <button class="btn-action" onclick="window.print()">🖨️ Print Agreement</button>
     </div>
   </header>
 
-  <!-- Layout Container -->
+  <!-- Layout -->
   <div class="legal-container">
-    <!-- Sticky Table of Contents -->
+    <!-- Sidebar TOC -->
     <aside>
-      <div class="toc-card">
-        <div class="toc-title">Table of Contents</div>
+      <div>
+        <div class="toc-title">Contents</div>
         <ul class="toc-links">
-          <li><a href="#sec-overview" class="active">01. Purpose & Scope</a></li>
-          <li><a href="#sec-non-misuse">02. Non-Misuse Guarantee</a></li>
-          <li><a href="#sec-ephemeral">03. Ephemeral RAM Purge</a></li>
-          <li><a href="#sec-regulatory">04. GDPR & CCPA Compliance</a></li>
-          <li><a href="#sec-transparency">05. Participant Notifications</a></li>
-          <li><a href="#sec-forensics">06. Cryptographic Proofs</a></li>
-          <li><a href="#sec-governance">07. Limitation of Liability</a></li>
+          <li><a href="#sec-overview" class="active">01 — Purpose &amp; scope</a></li>
+          <li><a href="#sec-non-misuse">02 — Non-misuse guarantee</a></li>
+          <li><a href="#sec-ephemeral">03 — Ephemeral RAM purge</a></li>
+          <li><a href="#sec-regulatory">04 — GDPR &amp; CCPA compliance</a></li>
+          <li><a href="#sec-transparency">05 — Participant notifications</a></li>
+          <li><a href="#sec-forensics">06 — Cryptographic proofs</a></li>
+          <li><a href="#sec-governance">07 — Limitation of liability</a></li>
         </ul>
       </div>
-
-      <div class="sidebar-accept-box">
-        <h4>Binding Agreement</h4>
-        <p>Your acceptance activates automated deepfake inspection with 100% ephemeral memory execution.</p>
-        <button class="btn-accept-sidebar" id="btn-sidebar-accept">✓ Accept Terms</button>
-      </div>
+      <p class="sidebar-note">This agreement governs the automated inspection of video and audio streams during live
+        meetings. It becomes effective upon acceptance below.</p>
     </aside>
 
-    <!-- Main Legal Documentation -->
+    <!-- Document -->
     <main>
-      <!-- Hero Banner -->
-      <div class="hero-strip">
-        <div class="hero-meta">
-          <span><b>Version:</b> 2.1.0 Enterprise</span>
-          <span>•</span>
-          <span><b>Effective Date:</b> August 15, 2026</span>
-          <span>•</span>
-          <span><b>Standard:</b> ISO/IEC 27001 & SOC-2 Type II</span>
+      <div class="doc-header">
+        <div class="doc-meta-row">
+          <span>Version <b>2.1.0 Enterprise</b></span>
+          <span>Effective <b>15 August 2026</b></span>
+          <span>Standard <b>ISO/IEC 27001 &amp; SOC 2 Type II</b></span>
         </div>
-        <h2 class="hero-title">Participant Protection & Legal Liability Agreement</h2>
-        <p class="hero-subtitle">
-          Netram AI provides real-time neural integrity verification on video conferences while ensuring absolute privacy and data sovereignty. This document constitutes a legally binding warranty governing video streams, audio processing, and zero-retention protections.
+        <h2 class="doc-title">Participant Protection &amp; Legal Liability Agreement</h2>
+        <p class="doc-subtitle">
+          Netram AI provides real-time neural integrity verification on video conferences while preserving absolute
+          privacy and data sovereignty. This document constitutes a binding warranty governing the treatment of video
+          streams, audio processing, and zero-retention protections.
         </p>
       </div>
 
-      <!-- Section 1: Overview & Scope -->
-      <section class="legal-card" id="sec-overview">
+      <!-- 01 -->
+      <section class="legal-section" id="sec-overview">
         <div class="section-header">
           <span class="section-badge-num">01</span>
-          <h3 class="section-title">Purpose & Scope of Real-Time Inspection</h3>
+          <h3 class="section-title">Purpose &amp; Scope of Real-Time Inspection</h3>
         </div>
         <div class="legal-body">
           <p>
-            Netram AI operates as an edge-assisted, multi-modal neural defense mechanism designed to detect unauthorized synthetic media, face swaps, GAN/diffusion anomalies, presentation replay attacks, and AI voice cloning (TTS synthesis) on communication platforms including <b>Google Meet</b>, <b>Zoom Web</b>, and <b>Microsoft Teams</b>.
+            Netram AI operates as an edge-assisted, multi-modal neural defense mechanism designed to detect unauthorized
+            synthetic media, face swaps, GAN and diffusion anomalies, presentation replay attacks, and AI voice cloning
+            during calls on <b>Google Meet</b>, <b>Zoom Web</b>, and <b>Microsoft Teams</b>.
           </p>
-          <div class="callout-box cyan">
-            <span class="callout-icon">🛡️</span>
-            <div>
-              <b>Bilateral Session Protection:</b> Netram AI is deployed to protect both the user and all call attendees from deepfake impersonation fraud, CEO fraud, and synthetic identity theft during live video meetings.
-            </div>
+          <div class="callout-box">
+            <b>Bilateral session protection.</b> Netram AI is deployed to protect both the user and all call attendees
+            from deepfake impersonation fraud, executive impersonation, and synthetic identity theft during live video
+            meetings.
           </div>
         </div>
       </section>
 
-      <!-- Section 2: Non-Misuse Guarantee -->
-      <section class="legal-card" id="sec-non-misuse">
+      <!-- 02 -->
+      <section class="legal-section" id="sec-non-misuse">
         <div class="section-header">
           <span class="section-badge-num">02</span>
-          <h3 class="section-title">Strict Non-Misuse & Safe Clip Handling Guarantee</h3>
+          <h3 class="section-title">Strict Non-Misuse &amp; Safe Clip Handling Guarantee</h3>
         </div>
         <div class="legal-body">
-          <p>
-            Netram AI explicitly warrants and legally binds itself to the following unconditional guarantees regarding meeting streams:
-          </p>
-          <div class="callout-box gold">
-            <span class="callout-icon">⚖️</span>
-            <div>
-              <b>Contractual Warranty:</b> Under no circumstances will raw video feeds, isolated camera clips, microphone audio streams, or participant face embeddings be recorded, persistently stored, sold, commercialized, shared with third parties, or harvested for AI model retraining.
-            </div>
+          <p>Netram AI explicitly warrants and binds itself to the following unconditional guarantees regarding all
+            meeting streams it inspects:</p>
+          <div class="callout-box">
+            <b>Contractual warranty.</b> Under no circumstances will raw video feeds, isolated camera clips, microphone
+            audio, or participant face embeddings be recorded, persistently stored, sold, commercialized, shared with
+            third parties, or used to retrain any model.
           </div>
           <div class="guarantees-grid">
             <div class="g-card">
-              <h4>🚫 No Video Storage</h4>
-              <p>Frames are consumed in volatile memory for under 50 milliseconds and never written to hard disks or databases.</p>
+              <h4>No video storage</h4>
+              <p>Frames are held in volatile memory for under 50 milliseconds and are never written to disk or database.
+              </p>
             </div>
             <div class="g-card">
-              <h4>🚫 No Voice Recording</h4>
-              <p>PCM audio windows are analyzed for spectral voice cloning markers and purged immediately post-inference.</p>
+              <h4>No voice recording</h4>
+              <p>PCM audio windows are analyzed for spectral cloning markers and purged immediately after inference.</p>
             </div>
             <div class="g-card">
-              <h4>🚫 Zero AI Retraining</h4>
-              <p>Participant biometric face landmarks are never collected or pooled into generative model training datasets.</p>
+              <h4>No model retraining</h4>
+              <p>Biometric face landmarks are never collected or pooled into a generative training dataset.</p>
             </div>
             <div class="g-card">
-              <h4>🚫 No Third-Party Resale</h4>
-              <p>Participant telemetry is strictly confidential and never shared with advertising or surveillance brokers.</p>
+              <h4>No third-party resale</h4>
+              <p>Participant telemetry remains confidential and is never shared with advertising or data brokers.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Section 3: Ephemeral In-Memory Execution -->
-      <section class="legal-card" id="sec-ephemeral">
+      <!-- 03 -->
+      <section class="legal-section" id="sec-ephemeral">
         <div class="section-header">
           <span class="section-badge-num">03</span>
-          <h3 class="section-title">Ephemeral In-Memory (RAM) Purge Cycle</h3>
+          <h3 class="section-title">Ephemeral In-Memory Purge Cycle</h3>
         </div>
         <div class="legal-body">
-          <p>
-            Every frame processed by Netram AI follows a strict ephemeral lifecycle:
-          </p>
+          <p>Every frame processed by Netram AI follows a fixed ephemeral lifecycle:</p>
           <ul class="clause-list">
-            <li>
-              <span class="dot">▸</span>
-              <span><b>1. Volatile Ingestion:</b> Incoming WebRTC video frames are sampled at ~3.3 FPS directly into RAM buffers.</span>
-            </li>
-            <li>
-              <span class="dot">▸</span>
-              <span><b>2. Multi-Branch Neural Triage:</b> Spatial ViT, 2D DCT CNN, Temporal Bi-GRU, and AASIST audio models run forward inference in ~32ms.</span>
-            </li>
-            <li>
-              <span class="dot">▸</span>
-              <span><b>3. Immediate Overwrite:</b> Once the numerical forensic score (0.0 to 1.0) is calculated, the raw frame data is wiped from volatile memory.</span>
-            </li>
+            <li><span class="dot">3.1</span><span><b>Volatile ingestion.</b> Incoming WebRTC video frames are sampled at
+                approximately 3.3 FPS directly into RAM buffers.</span></li>
+            <li><span class="dot">3.2</span><span><b>Multi-branch neural triage.</b> Spatial ViT, 2D DCT CNN, temporal
+                Bi-GRU, and AASIST audio models run forward inference in roughly 32 milliseconds.</span></li>
+            <li><span class="dot">3.3</span><span><b>Immediate overwrite.</b> Once a forensic confidence score between
+                0.0 and 1.0 is calculated, the raw frame data is wiped from volatile memory.</span></li>
           </ul>
         </div>
       </section>
 
-      <!-- Section 4: GDPR & CCPA Compliance -->
-      <section class="legal-card" id="sec-regulatory">
+      <!-- 04 -->
+      <section class="legal-section" id="sec-regulatory">
         <div class="section-header">
           <span class="section-badge-num">04</span>
-          <h3 class="section-title">Regulatory Compliance & Biometric Privacy</h3>
+          <h3 class="section-title">Regulatory Compliance &amp; Biometric Privacy</h3>
         </div>
         <div class="legal-body">
-          <p>
-            Netram AI complies with global privacy legislation governing biometric processing and security defense:
-          </p>
-          <div class="callout-box green">
-            <span class="callout-icon">📋</span>
-            <div>
-              <b>Regulatory Alignment:</b> Netram's zero-retention architecture satisfies <b>GDPR Art. 9(2)(f) & 9(2)(g)</b> (security defense exceptions without persistent storage), <b>California Consumer Privacy Act (CCPA)</b> non-disclosure requirements, and <b>SOC-2 Type II Zero-Trust</b> mandates.
-            </div>
+          <p>Netram AI complies with applicable privacy legislation governing biometric processing and automated
+            security defense:</p>
+          <div class="callout-box">
+            <b>Regulatory alignment.</b> Netram's zero-retention architecture satisfies GDPR Art. 9(2)(f) and 9(2)(g)
+            security-defense exceptions without persistent storage, California Consumer Privacy Act non-disclosure
+            requirements, and SOC 2 Type II zero-trust mandates.
           </div>
         </div>
       </section>
 
-      <!-- Section 5: Transparency & In-Meeting Chat Notice -->
-      <section class="legal-card" id="sec-transparency">
+      <!-- 05 -->
+      <section class="legal-section" id="sec-transparency">
         <div class="section-header">
           <span class="section-badge-num">05</span>
-          <h3 class="section-title">Participant Transparency & In-Meeting Chat Broadcasting</h3>
+          <h3 class="section-title">Participant Transparency &amp; In-Meeting Notification</h3>
         </div>
         <div class="legal-body">
-          <p>
-            To guarantee complete transparency with fellow meeting participants:
-          </p>
+          <p>To maintain full transparency with fellow meeting participants:</p>
           <ul class="clause-list">
-            <li>
-              <span class="dot">▸</span>
-              <span><b>Automated In-Call Notice:</b> Upon joining Google Meet, Zoom, or Teams calls, Netram automatically broadcasts a legal compliance disclaimer in the public in-call chat, notifying all participants of active zero-retention neural inspection.</span>
-            </li>
-            <li>
-              <span class="dot">▸</span>
-              <span><b>Top Compliance Bar:</b> Injects a persistent top bar allowing any participant to view the legal liability certificate and cryptographic session ID.</span>
-            </li>
+            <li><span class="dot">5.1</span><span><b>Automated in-call notice.</b> Upon joining a Google Meet, Zoom, or
+                Teams call, Netram posts a compliance notice in the public in-call chat, informing all participants that
+                zero-retention neural inspection is active.</span></li>
+            <li><span class="dot">5.2</span><span><b>Compliance bar.</b> A persistent top bar is injected, allowing any
+                participant to view the liability certificate and cryptographic session ID at any time.</span></li>
           </ul>
         </div>
       </section>
 
-      <!-- Section 6: Cryptographic Session Proofs -->
-      <section class="legal-card" id="sec-forensics">
+      <!-- 06 -->
+      <section class="legal-section" id="sec-forensics">
         <div class="section-header">
           <span class="section-badge-num">06</span>
           <h3 class="section-title">Cryptographic Session Verification</h3>
         </div>
         <div class="legal-body">
           <p>
-            Every meeting monitored by Netram AI generates an ephemeral session verification ID (e.g. <code>NETRAM-SEC-XXXXXX</code>) and signs forensic verdict telemetry with SHA-256 hashes to guarantee that inspection results cannot be fabricated or tampered with.
+            Every meeting monitored by Netram AI generates an ephemeral session verification ID (formatted as <span
+              class="mono">NETRAM-SEC-XXXXXX</span>) and signs forensic verdict telemetry with SHA-256 hashes, so that
+            inspection results cannot be fabricated or altered after the fact.
           </p>
         </div>
       </section>
 
-      <!-- Section 7: Governance & Limitation of Liability -->
-      <section class="legal-card" id="sec-governance">
+      <!-- 07 -->
+      <section class="legal-section" id="sec-governance">
         <div class="section-header">
           <span class="section-badge-num">07</span>
-          <h3 class="section-title">Limitation of Liability & Responsible Disclosure</h3>
+          <h3 class="section-title">Limitation of Liability &amp; Responsible Disclosure</h3>
         </div>
         <div class="legal-body">
           <p>
-            Netram AI is provided as an advanced digital security aid. Detection verdicts represent probabilistic confidence scores produced by neural networks. Users should exercise critical thinking and human review alongside automated verdicts. Netram AI assumes full legal liability for its zero-retention guarantee while disclaiming indirect or consequential damages arising from meeting communications.
+            Netram AI is provided as an advanced digital security aid. Detection verdicts represent probabilistic
+            confidence scores produced by neural networks, and users should apply their own judgment and human review
+            alongside automated results. Netram AI assumes full legal liability for its zero-retention guarantee while
+            disclaiming indirect or consequential damages arising from meeting communications.
           </p>
         </div>
       </section>
 
-      <!-- Interactive Acceptance Card -->
-      <div class="bottom-acceptance-card">
+      <!-- Acceptance -->
+      <div class="acceptance-block">
         <div class="acceptance-header">
-          <h3 style="color:#fff; font-size:18px; font-weight:700;">Accept Terms & Activate Defense</h3>
-          <span class="cert-badge">Legally Binding</span>
+          <h3>Accept Terms &amp; Activate Protection</h3>
+          <span class="acceptance-tag">Legally binding</span>
         </div>
-        <p style="font-size:13px; color:#cbd5e1;">
-          By checking the box below, you acknowledge and agree to Netram AI's Terms of Service, Privacy Policy, and Participant Protection Guarantee.
+        <p class="acceptance-body-text">
+          By checking the box below, you acknowledge that you have read and agree to Netram AI's Terms of Service,
+          Privacy Policy, and Participant Protection Guarantee.
         </p>
         <label class="acceptance-checkbox-label">
           <input type="checkbox" id="cb-accept-terms">
-          <span>I have read, understood, and accept the Netram AI Terms of Service, Zero-Retention Guarantee, and Privacy Policy.</span>
+          <span>I have read, understood, and accept the Netram AI Terms of Service, Zero-Retention Guarantee, and
+            Privacy Policy.</span>
         </label>
+        <br>
         <button class="btn-accept-large" id="btn-accept-terms" disabled>
-          ✓ Accept Terms & Activate Netram AI Shield
+          Accept terms &amp; activate Netram AI Shield
         </button>
       </div>
     </main>
@@ -683,58 +747,55 @@
 
   <!-- Footer -->
   <footer>
-    <p>© 2026 Netram AI Defense Inc. All rights reserved. Zero-Retention Ephemeral Inspection Engine.</p>
+    © 2026 Netram AI Defense Inc. All rights reserved. Zero-retention ephemeral inspection engine.
   </footer>
 
   <script>
     const cb = document.getElementById("cb-accept-terms");
     const btn = document.getElementById("btn-accept-terms");
-    const sidebarBtn = document.getElementById("btn-sidebar-accept");
 
     function updateAcceptState() {
       btn.disabled = !cb.checked;
     }
-
     cb.addEventListener("change", updateAcceptState);
 
     function completeAcceptance() {
-      if (chrome?.storage?.local) {
-        chrome.storage.local.set({
-          termsAccepted: true,
-          termsAcceptedTimestamp: new Date().toISOString()
-        }, () => {
-          alert("✅ Terms & Conditions Accepted! Netram AI Shield is now fully activated.");
-          if (window.opener) window.close();
-        });
-      } else {
-        localStorage.setItem("netram_terms_accepted", "true");
-        alert("✅ Terms & Conditions Accepted! Netram AI Shield is now fully activated.");
+      const timestamp = new Date().toISOString();
+      try {
+        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+          chrome.storage.local.set({ termsAccepted: true, termsAcceptedTimestamp: timestamp }, () => {
+            finishUI();
+          });
+        } else {
+          localStorage.setItem("netram_terms_accepted", "true");
+          finishUI();
+        }
+      } catch (e) {
+        finishUI();
       }
-      btn.textContent = "Accepted ✓";
+    }
+
+    function finishUI() {
+      btn.textContent = "Accepted";
       btn.disabled = true;
-      sidebarBtn.textContent = "Accepted ✓";
-      sidebarBtn.disabled = true;
     }
 
     btn.addEventListener("click", completeAcceptance);
-    sidebarBtn.addEventListener("click", () => {
-      cb.checked = true;
-      updateAcceptState();
-      completeAcceptance();
-    });
 
-    // Check if already accepted
-    if (chrome?.storage?.local) {
-      chrome.storage.local.get(["termsAccepted"], (res) => {
-        if (res.termsAccepted) {
-          cb.checked = true;
-          btn.textContent = "Accepted ✓";
-          btn.disabled = true;
-          sidebarBtn.textContent = "Accepted ✓";
-          sidebarBtn.disabled = true;
+    // Active TOC link on scroll
+    const sections = document.querySelectorAll(".legal-section");
+    const links = document.querySelectorAll(".toc-links a");
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          links.forEach(l => l.classList.remove("active"));
+          const match = document.querySelector(`.toc-links a[href="#${entry.target.id}"]`);
+          if (match) match.classList.add("active");
         }
       });
-    }
+    }, { rootMargin: "-40% 0px -50% 0px" });
+    sections.forEach(s => observer.observe(s));
   </script>
 </body>
+
 </html>

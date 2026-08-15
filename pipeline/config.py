@@ -87,10 +87,10 @@ class TemporalConfig:
 @dataclass
 class FusionConfig:
     fusion_model_path: str = "models/fusion_head.pkl"   # sklearn LogisticRegression/MLP, pickled
-    smoothing_alpha: float = 0.7                         # S_t = 0.7*P + 0.3*S_{t-1} for responsive smoothing
+    smoothing_alpha: float = 0.22                        # S_t = 0.22*P + 0.78*S_{t-1} for calm, stabilized detection
     review_threshold: float = 0.55     # "flag for human review" - calibrate via ROC
     block_threshold: float = 0.80      # "auto-block/warn all participants" - calibrate via ROC
-    sustained_seconds: float = 2.5     # must exceed threshold this long to trigger
+    sustained_seconds: float = 2.0     # must exceed threshold this long to trigger
 
 
 

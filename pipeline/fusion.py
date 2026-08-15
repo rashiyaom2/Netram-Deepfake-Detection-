@@ -231,8 +231,18 @@ class DecisionEngine:
             p_frame = max(p_frame, float(filter_boost))
 
         # Exponential smoothing
-        smoothed = exponential_smooth(p_frame, state.smoothed_score, self.cfg.smoothing_alpha)
-        state.smoothed_score = smoothed
+        if self.cfg.smoothing_alpha >= 0.99:
+            smoothed = p_frame
+        elif state.smoothed_score == 0.0:
+            smoothed = p_frame
+        else:
+            smoothed = exponential_smooth(p_frame, state.smoothed_score, self.cfg.smoothing_alpha)
+
+        # Presentation Attack Immediate Confidence Escalation
+        if branch_scores.phone_detected and branch_scores.phone_confidence >= 0.50:
+            smoothed = max(smoothed, 0.85)
+
+        state.smoothed_score = float(smoothed)
 
         # Sustained threshold logic
         now = timestamp

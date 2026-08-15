@@ -1,13 +1,13 @@
 /**
- * Netram AI Deepfake Shield — Enterprise Content Script
+ * Netram — "God's Eye" Deepfake Shield — Enterprise Content Script
  * Injects into Google Meet / Zoom Web / Teams Web / Testbed.
- * 
+ *
  * Features:
  * - Real-time video & WebRTC audio capture with multi-modal neural streaming
  * - Google Meet Automated In-Chat Legal Liability & Participant Consent Broadcaster
- * - Top-level Floating Glassmorphic Compliance & Privacy Bar
+ * - Top-level floating glass Compliance & Privacy bar (brand nav styling)
  * - Comprehensive Participant Legal Terms & Non-Misuse Guarantee Modal
- * - Draggable Siri-styled Glassmorphism HUD widget
+ * - Draggable glass HUD widget with the Netram signal ring
  * - Floating badges with hoverable neural inspector popovers
  */
 (() => {
@@ -78,7 +78,7 @@
           endpointIdx = 0;
           reconnectDelay = 2000;
           if (ws) {
-            try { ws.close(); } catch (_) {}
+            try { ws.close(); } catch (_) { }
             ws = null;
           }
           connect();
@@ -111,7 +111,7 @@
     if (!audioCtx) {
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-      } catch (_) {}
+      } catch (_) { }
     }
     return audioCtx;
   }
@@ -126,7 +126,7 @@
       g.gain.setValueAtTime(0.15, ac.currentTime);
       g.gain.exponentialRampToValueAtTime(0.01, ac.currentTime + 0.25);
       o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.3);
-    } catch (_) {}
+    } catch (_) { }
   }
 
   /* ── WebSocket with Auto-Reconnect & Configurable Endpoint ── */
@@ -141,10 +141,10 @@
         try {
           const d = JSON.parse(e.data);
           if (d.type === "verdict" || d.type === "telemetry") handleVerdict(d);
-        } catch (_) {}
+        } catch (_) { }
       };
       ws.onclose = () => { connected = false; ws = null; updateSiriStatus("⚪ Connecting…"); scheduleReconnect(); };
-      ws.onerror = () => { connected = false; try { ws.close(); } catch (_) {} ws = null; updateSiriStatus("⚪ Connecting…"); };
+      ws.onerror = () => { connected = false; try { ws.close(); } catch (_) { } ws = null; updateSiriStatus("⚪ Connecting…"); };
     } catch (_) { connected = false; ws = null; updateSiriStatus("⚪ Connecting…"); scheduleReconnect(); }
   }
 
@@ -170,8 +170,8 @@
      LEGAL LIABILITY, TERMS & GOOGLE MEET CHAT BROADCASTER
      ═══════════════════════════════════════════════════════════════════ */
 
-  const LEGAL_DISCLAIMER_TEXT = 
-`🛡️ [Netram AI Enterprise Defense Notice]
+  const LEGAL_DISCLAIMER_TEXT =
+    `🛡️ [Netram — God's Eye Enterprise Defense Notice]
 Real-time neural deepfake & synthetic media integrity monitoring is active in this meeting session.
 
 🔒 Participant Data Protection & Non-Misuse Guarantee:
@@ -226,7 +226,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     if (meetChatToggle) {
       const isExpanded = meetChatToggle.getAttribute("aria-expanded") === "true" || meetChatToggle.classList.contains("active");
       if (!isExpanded) {
-        try { meetChatToggle.click(); } catch (_) {}
+        try { meetChatToggle.click(); } catch (_) { }
       }
     }
 
@@ -265,10 +265,10 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
             }
 
             sessionStorage.setItem(broadcastKey, "true");
-            showComplianceToast("✅ Netram AI Legal & Privacy Notice announced in meeting chat.");
+            showComplianceToast("✅ Netram Legal & Privacy notice announced in meeting chat.");
           }, 350);
         } catch (err) {
-          console.warn("[Netram AI] Chat automation notice:", err);
+          console.warn("[Netram] Chat automation notice:", err);
         }
       } else {
         // If not found yet and still within 6 retries, retry in 1.5s
@@ -318,7 +318,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     }, 4200);
   }
 
-  /* ── Floating Top Compliance Bar Injection ── */
+  /* ── Floating Top Compliance Bar Injection (styled after the Netram nav pill) ── */
   function injectComplianceBar() {
     if (document.getElementById("netram-compliance-bar")) return;
 
@@ -327,10 +327,10 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     bar.innerHTML = `
       <div class="netram-bar-content">
         <div class="netram-bar-badge">
-          <span class="netram-shield-icon">🛡️</span>
+          <span class="netram-shield-icon"></span>
           <div class="netram-badge-text">
-            <span class="netram-badge-title">Netram AI Shield Active</span>
-            <span class="netram-badge-sub">Zero-Retention & Non-Misuse Protected · ${MEETING_SESSION_ID}</span>
+            <span class="netram-badge-title">Netram Shield Active</span>
+            <span class="netram-badge-sub">Zero-Retention · ${MEETING_SESSION_ID}</span>
           </div>
         </div>
         <div class="netram-bar-actions">
@@ -347,7 +347,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         </div>
       </div>
       <div class="netram-bar-minimized" id="netram-bar-minimized" style="display:none;" title="Expand Netram Compliance Shield">
-        <span>🛡️</span>
+        <span class="nt-mark"></span>
         <span class="min-pulse"></span>
       </div>`;
 
@@ -358,7 +358,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     document.getElementById("btn-open-legal-terms").addEventListener("click", openLegalModal);
     document.getElementById("btn-broadcast-chat").addEventListener("click", () => broadcastLegalNoticeToMeetChat(true));
     document.getElementById("btn-copy-terms").addEventListener("click", copyLegalNoticeToClipboard);
-    
+
     // Minimize / Expand logic
     const content = bar.querySelector(".netram-bar-content");
     const minBtn = document.getElementById("netram-bar-minimized");
@@ -404,10 +404,10 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       <div class="netram-modal-card">
         <div class="netram-modal-header">
           <div class="modal-brand">
-            <div class="modal-shield-orb">🛡️</div>
+            <div class="modal-shield-orb"><span class="nt-mark lg"></span></div>
             <div>
               <h2 class="modal-title">Participant Protection & Legal Liability Guarantee</h2>
-              <span class="modal-sub">Netram AI Enterprise Trust, Safety & Zero-Retention Compliance Agreement</span>
+              <span class="modal-sub">Netram — God's Eye Enterprise Trust, Safety & Zero-Retention Compliance Agreement</span>
             </div>
           </div>
           <button class="modal-close-btn" id="modal-btn-close">✕</button>
@@ -425,7 +425,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
             <span class="legal-badge-gold">LEGAL LIABILITY COMMITMENT</span>
             <h3>Strict Non-Misuse & Safe Clip Handling Guarantee</h3>
             <p>
-              By design and strict contractual guarantee, Netram AI certifies that <b>no video clips, screen captures, voice audio recordings, or biometric face vectors</b> from any meeting participant will ever be saved, stored on servers, shared with third parties, sold, or used for AI model retraining.
+              By design and strict contractual guarantee, Netram certifies that <b>no video clips, screen captures, voice audio recordings, or biometric face vectors</b> from any meeting participant will ever be saved, stored on servers, shared with third parties, sold, or used for AI model retraining.
             </p>
           </div>
 
@@ -610,7 +610,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       source.connect(processor);
       processor.connect(actx.destination);
       tracker.audioSource = source;
-    } catch (_) {}
+    } catch (_) { }
   }
 
   /* ── Badge injection on Video Tiles ── */
@@ -631,8 +631,8 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         <div class="insp-row"><span>Temporal GRU</span><span class="iv iv-temporal">—</span></div>
         <div class="insp-row"><span>Liveness EAR</span><span class="iv iv-liveness">—</span></div>
         <div class="insp-row"><span>Voice Clone</span><span class="iv iv-voice">—</span></div>
-        <div class="insp-row iv-phone-row" style="display:none;"><span>Phone Replay</span><span class="iv iv-phone" style="color:#ef4444; font-weight:700;">🚨 DETECTED</span></div>
-        <div class="insp-row iv-filter-row" style="display:none;"><span>AR Beauty Filter</span><span class="iv iv-filter" style="color:#f59e0b; font-weight:700;">✨ DETECTED</span></div>
+        <div class="insp-row iv-phone-row" style="display:none;"><span>Phone Replay</span><span class="iv iv-phone" style="color:#f0605f; font-weight:700;">🚨 DETECTED</span></div>
+        <div class="insp-row iv-filter-row" style="display:none;"><span>AR Beauty Filter</span><span class="iv iv-filter" style="color:#f5a623; font-weight:700;">✨ DETECTED</span></div>
         <div class="insp-rec" style="display:none;">
           <span class="insp-rec-title">AI Recommendation</span>
           <p class="insp-rec-text"></p>
@@ -642,7 +642,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     t.badge = b;
   }
 
-  /* ── Siri-styled Draggable Floating HUD ── */
+  /* ── Draggable Floating HUD ── */
   function injectSiriHud() {
     if (document.getElementById("aegis-siri-hud")) return;
     const hud = document.createElement("div");
@@ -653,7 +653,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         <div class="siri-orb-container">
           <div class="siri-orb"></div>
           <div class="siri-title-group">
-            <span class="siri-title">Netram Neural HUD</span>
+            <span class="siri-title">Netram · God's Eye</span>
             <span class="siri-subtitle" id="siri-status-text">🟢 Active</span>
           </div>
         </div>
@@ -804,7 +804,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       if (q(".iv-temporal")) q(".iv-temporal").textContent = pct(d.p_temporal);
       if (q(".iv-liveness")) q(".iv-liveness").textContent = pct(d.p_liveness);
       if (q(".iv-voice")) q(".iv-voice").textContent = d.p_voice_clone != null ? pct(d.p_voice_clone) : "N/A";
-      
+
       const phoneRow = q(".iv-phone-row");
       if (phoneRow) {
         phoneRow.style.display = d.phone_detected ? "flex" : "none";
@@ -826,7 +826,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       if (level === "clear" || level === "low" || level === "calibrating") t.alerted = false;
     }
 
-    // Update Siri Draggable HUD
+    // Update draggable HUD
     if (siriHudEl) {
       const level = (d.threat_level || "clear").toLowerCase();
       const score = Math.min(1, Math.max(0, d.score || 0));
@@ -849,18 +849,18 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       const pName = document.getElementById("siri-participant-name");
       if (pName) pName.textContent = d.participant_id || "Participant";
 
-      // SVG Ring
+      // SVG Ring — brand signal ramp: teal → sky → amber → orange → red
       const circ = 2 * Math.PI * 22; // 138.2
       const offset = circ * (1 - score);
       const ringFill = document.getElementById("siri-ring-fill");
       if (ringFill) {
         ringFill.style.strokeDashoffset = offset.toFixed(1);
-        let color = "#30d98b";
-        if (score >= 0.82) color = "#f06060";
-        else if (score >= 0.65) color = "#ff9f43";
+        let color = "#2dd4bf";
+        if (score >= 0.82) color = "#f0605f";
+        else if (score >= 0.65) color = "#fb923c";
         else if (score >= 0.45) color = "#f5a623";
-        else if (score >= 0.25) color = "#4fc3f7";
-        else if (level === "calibrating") color = "#af52de";
+        else if (score >= 0.25) color = "#60a5fa";
+        else if (level === "calibrating") color = "#a78bfa";
         ringFill.style.stroke = color;
       }
 
@@ -882,9 +882,9 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         if (txt) txt.textContent = p + "%";
         if (bar) {
           bar.style.width = p + "%";
-          if (v > 0.6) bar.style.background = "#f06060";
+          if (v > 0.6) bar.style.background = "#f0605f";
           else if (v > 0.35) bar.style.background = "#f5a623";
-          else bar.style.background = "#30d98b";
+          else bar.style.background = "#2dd4bf";
         }
       };
       setMetric("spatial", d.p_spatial);

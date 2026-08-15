@@ -214,7 +214,7 @@ class ARFilterDetector:
         Evaluates facial landmark proportions against biological anthropometric standards.
         Snapchat / IG beauty filters enlarge eyes and taper chin / jawline.
         """
-        if not landmarks or len(landmarks) < 4:
+        if not landmarks or len(landmarks) < 2:
             return 0.0, []
 
         reasons = []

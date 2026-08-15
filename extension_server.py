@@ -22,6 +22,7 @@ import logging
 import os
 import sys
 import time
+from collections import defaultdict
 from typing import Dict, Optional, Tuple
 
 import cv2
@@ -57,6 +58,7 @@ class DeepfakeExtensionServer:
         self.frame_counters: Dict[str, int] = {}
         self.participant_last_seen: Dict[str, float] = {}
         self.last_verdicts: Dict[str, Dict] = {}
+        self.smoothed_branches: Dict[str, Dict[str, float]] = defaultdict(dict)
 
 
     def decode_frame(self, data_str: str) -> Optional[np.ndarray]:
@@ -185,13 +187,23 @@ class DeepfakeExtensionServer:
 
         t_elapsed_ms = (time.perf_counter() - t_start) * 1000.0
 
-        # ── Explainable AI: generate human-readable recommendation ──
+        # ── Explainable AI & Smooth Telemetry (Calm, Stabilized UI) ──
         score = float(decision.smoothed_score)
-        p_sp = float(branch_scores.p_spatial)
-        p_fr = float(branch_scores.p_freq)
-        p_te = float(temporal_result.p_temporal)
-        p_li = float(temporal_result.p_liveness)
-        jitter_val = float(temporal_result.jitter_score)
+        
+        # Smooth individual branch bars across frames (alpha = 0.22) to eliminate erratic UI jumping
+        sb = self.smoothed_branches[participant_id]
+        raw_sp = float(branch_scores.p_spatial)
+        raw_fr = float(branch_scores.p_freq)
+        raw_te = float(temporal_result.p_temporal)
+        raw_li = float(temporal_result.p_liveness)
+        raw_jit = float(temporal_result.jitter_score)
+
+        p_sp = sb["p_sp"] = (0.22 * raw_sp) + (0.78 * sb.get("p_sp", raw_sp))
+        p_fr = sb["p_fr"] = (0.22 * raw_fr) + (0.78 * sb.get("p_fr", raw_fr))
+        p_te = sb["p_te"] = (0.22 * raw_te) + (0.78 * sb.get("p_te", raw_te))
+        p_li = sb["p_li"] = (0.22 * raw_li) + (0.78 * sb.get("p_li", raw_li))
+        jitter_val = sb["jitter"] = (0.22 * raw_jit) + (0.78 * sb.get("jitter", raw_jit))
+
         p_sy = float(branch_scores.p_sync) if branch_scores.p_sync is not None else 0.0
         p_vc = float(branch_scores.p_voice_clone) if branch_scores.p_voice_clone is not None else 0.0
         phone_det = bool(branch_scores.phone_detected)
@@ -377,14 +389,22 @@ class DeepfakeExtensionServer:
                         audio_pcm = self.decode_audio(audio_data) if audio_data else None
 
                         if frame_bgr is not None:
-                            # Run inference in worker thread to prevent event loop blocking
-                            result = await asyncio.to_thread(
-                                self.process_participant_frame,
-                                participant_id,
-                                frame_bgr,
-                                audio_pcm,
-                                timestamp
-                            )
+                            try:
+                                # Run inference in worker thread to prevent event loop blocking
+                                result = await asyncio.to_thread(
+                                    self.process_participant_frame,
+                                    participant_id,
+                                    frame_bgr,
+                                    audio_pcm,
+                                    timestamp
+                                )
+                            except RuntimeError:
+                                # Event loop / thread executor is shutting down
+                                break
+                            except Exception as ex:
+                                logger.debug(f"Frame processing error: {ex}")
+                                result = None
+
                             if result:
                                 self.last_verdicts[participant_id] = result
                                 msg_json = json.dumps(result)
