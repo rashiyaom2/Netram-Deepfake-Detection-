@@ -486,8 +486,14 @@ class TemporalTracker:
             else:
                 p_liveness = 0.0
 
-        # Biological Proof-of-Life ("Blink = Real"): if blinks are verified, presentation attack probability is strictly 0.0
-        if n_blinks > 0 or just_blinked:
+        # ─── STATIC PHOTO / 2D DISPLAY PRESENTATION ATTACK VERIFICATION ───
+        # If internal facial landmarks have zero non-rigid strain (completely rigid 2D planar motion),
+        # this is a static photo or phone screen replay of a photo!
+        if len(self._landmark_history) >= 8 and stillness_score > 0.55 and n_blinks == 0:
+            # Frozen 2D plane: no biological micro-strain and zero blinks
+            p_liveness = float(np.clip(0.85 + (stillness_score - 0.55) * 0.30, 0.85, 0.98))
+        elif n_blinks > 0 or just_blinked:
+            # Biological Proof-of-Life ("Blink = Real"): genuine human presence verified
             p_liveness = 0.0
 
         return TemporalResult(

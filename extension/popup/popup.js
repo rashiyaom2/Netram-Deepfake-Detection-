@@ -12,7 +12,7 @@ let selectedParticipantId = null;
 let displayScore = 0;
 let targetScore = 0;
 
-const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.up.railway.app";
+const DEFAULT_CLOUD_URL = "ws://127.0.0.1:8765";
 let configuredServerUrl = DEFAULT_CLOUD_URL;
 let reconnectTimer = null;
 let reconnectDelay = 2000;
@@ -33,8 +33,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 /* ─── Engine URL normalizer ─── */
 function normalizeWsUrl(url) {
-  if (!url) return DEFAULT_CLOUD_URL;
+  if (!url) return "ws://127.0.0.1:8765";
   url = url.trim();
+  if (url.includes("127.0.0.1") || url.includes("localhost") || url.includes(":8765")) {
+    url = url.replace(/^https?:\/\//i, "ws://").replace(/^wss:\/\//i, "ws://");
+    if (!url.startsWith("ws://")) url = "ws://" + url;
+    return url;
+  }
   if (url.startsWith("https://")) url = "wss://" + url.slice(8);
   else if (url.startsWith("http://")) url = "ws://" + url.slice(7);
   if (!url.startsWith("ws://") && !url.startsWith("wss://")) url = "wss://" + url;

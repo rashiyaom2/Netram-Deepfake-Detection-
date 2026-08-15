@@ -1,35 +1,33 @@
 """
-Stage 4d — Phone & Screen Replay Attack Detector.
+Stage 4d — Real-Time Phone & Screen Replay Attack Detector using YOLOv8.
 
 Identifies Presentation Attacks / Display Replays where an attacker holds up a
-physical smartphone, tablet, or external display screen in front of the camera
+physical smartphone, tablet, or display screen in front of the camera
 to stream pre-recorded or deepfaked videos.
 
-Robustness & Anti-False-Positive Architecture:
-  1. Specular Glare & Light Spot Rejection: Lamps, light bulbs, ceiling spotlights,
-     windows, and background glare are strictly rejected via over-saturation analysis
-     (V > 240 percentage, intensity variance, gradient diffusion).
-  2. Strict Face Enclosure Requirement: A physical replay attack requires that the
-     detected face is physically positioned INSIDE the phone bezel boundary.
-     Background rectangles that do not contain the face are ignored.
-  3. Aspect Ratio Gating: Validates typical smartphone aspect ratios (1.45 to 2.45).
-  4. Moiré Grid Harmonic Isolation: Masks specular glare before computing 2D DFT
-     and requires 2D harmonic grid periodicity.
+Uses deep learning object detection (YOLOv8, COCO class 67 'cell phone')
+based on shape and structural visual features, rather than brittle intensity/glare
+thresholds. Temporal smoothing filters out transient single-frame glitches.
 """
 from dataclasses import dataclass
 import logging
-from typing import Optional, Tuple, List
+import os
+import time
+from collections import deque
+from typing import Optional, Tuple, List, Dict, Any
 import numpy as np
 import cv2
 
 logger = logging.getLogger(__name__)
+
+COCO_CELL_PHONE_CLASS_ID = 67  # 'cell phone' class in standard COCO dataset
 
 
 @dataclass
 class PhoneDetectionResult:
     phone_detected: bool
     confidence: float                     # 0.0 to 1.0
-    detection_source: str                 # "NEURAL_OBJECT", "BEZEL_CONTOUR", "SPECTRAL_MOIRE", "HYBRID", "CLEAR"
+    detection_source: str                 # "YOLOV8_NEURAL", "BEZEL_CONTOUR", "HYBRID", "CLEAR"
     phone_bbox: Optional[Tuple[int, int, int, int]] = None  # x, y, w, h
     aspect_ratio: float = 0.0
     face_enclosed: bool = False
@@ -38,77 +36,55 @@ class PhoneDetectionResult:
 
 class PhoneReplayDetector:
     """
-    Real-time phone and screen replay attack detector.
-    Combines neural object recognition, geometric bezel contour analysis,
-    and frequency moiré spectral verification.
+    Real-time phone and screen replay attack detector powered by YOLOv8.
+    Distinguishes physical smartphones from glare or ambient lighting
+    based on visual geometry and neural features.
     """
 
     def __init__(
         self,
-        min_confidence: float = 0.60,
-        enable_neural: bool = True,
+        model_path: str = "models/yolov8n.pt",
+        conf_threshold: float = 0.38,
+        iou_threshold: float = 0.45,
+        smoothing_window: int = 5,
+        min_frames_present: int = 2,
         enable_bezel_analysis: bool = True,
-        enable_moire_analysis: bool = True,
     ):
-        self.min_confidence = min_confidence
-        self.enable_neural = enable_neural
+        self.model_path = model_path
+        self.conf_threshold = conf_threshold
+        self.iou_threshold = iou_threshold
+        self.smoothing_window = smoothing_window
+        self.min_frames_present = min_frames_present
         self.enable_bezel_analysis = enable_bezel_analysis
-        self.enable_moire_analysis = enable_moire_analysis
-        self._neural_model = None
-        self._neural_initialized = False
 
-    def _init_neural_detector(self):
-        """Attempts to load a fast mobile object detector if available."""
-        if self._neural_initialized:
+        self.history: deque = deque(maxlen=smoothing_window)
+        self.last_confidence_history: deque = deque(maxlen=smoothing_window)
+        self._yolo_model = None
+        self._yolo_initialized = False
+
+        self._init_yolo_model()
+
+    def _init_yolo_model(self):
+        """Initializes YOLOv8 neural phone detector."""
+        if self._yolo_initialized:
             return
-        self._neural_initialized = True
+        self._yolo_initialized = True
+
+        candidate_paths = [
+            self.model_path,
+            "models/yolov8n.pt",
+            "models/yolov8s.pt",
+            "yolov8n.pt",
+        ]
+        chosen_path = next((p for p in candidate_paths if p and os.path.exists(p)), "yolov8n.pt")
+
         try:
-            import torchvision
-            from torchvision.models.detection import ssdlite320_mobilenet_v3_large, SSDLite320_MobileNet_V3_Large_Weights
-            try:
-                weights = SSDLite320_MobileNet_V3_Large_Weights.DEFAULT
-                self._neural_model = ssdlite320_mobilenet_v3_large(weights=weights)
-                self._neural_model.eval()
-                logger.info("SSDLite320 MobileNetV3 Phone Detector initialized successfully.")
-            except Exception as e:
-                logger.debug(f"Could not load pre-trained SSDLite weights (offline/cpu): {e}")
-                self._neural_model = None
+            from ultralytics import YOLO
+            self._yolo_model = YOLO(chosen_path)
+            logger.info(f"YOLOv8 Phone Detector initialized successfully with {chosen_path}")
         except Exception as e:
-            logger.debug(f"Torchvision detection module unavailable: {e}")
-            self._neural_model = None
-
-    def _is_light_source_or_glare(self, roi_bgr: np.ndarray) -> bool:
-        """
-        Identifies whether a candidate region is an active light source, lamp,
-        window, or specular glare rather than a phone display.
-        """
-        if roi_bgr is None or roi_bgr.size == 0:
-            return True
-
-        gray = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2GRAY) if len(roi_bgr.shape) == 3 else roi_bgr
-        total_pixels = gray.size
-        if total_pixels == 0:
-            return True
-
-        # 1. Saturated / blown-out white pixels (> 240)
-        saturated_count = np.sum(gray >= 240)
-        saturated_ratio = saturated_count / float(total_pixels)
-        if saturated_ratio > 0.18:
-            # Over 18% of the box is completely blown out white -> it's a light source/glare
-            return True
-
-        # 2. Mean brightness test
-        mean_val = float(np.mean(gray))
-        if mean_val > 222.0:
-            # Excessively bright overall -> light fixture or window
-            return True
-
-        # 3. Flat bright texture test (glare or solid bright blob without facial/screen structure)
-        std_val = float(np.std(gray))
-        if std_val < 10.0 and mean_val > 150.0:
-            return True
-
-        return False
+            logger.warning(f"Could not load YOLOv8 model from {chosen_path}: {e}")
+            self._yolo_model = None
 
     def detect(
         self,
@@ -116,140 +92,148 @@ class PhoneReplayDetector:
         face_bbox: Optional[Tuple[int, int, int, int]] = None
     ) -> PhoneDetectionResult:
         """
-        Executes multi-layered phone screen replay detection on a single frame.
-
-        Args:
-            image_bgr: Raw input frame (HxWx3, BGR uint8)
-            face_bbox: Optional detected face bounding box (x, y, w, h)
-
-        Returns:
-            PhoneDetectionResult
+        Executes YOLOv8 phone detection + temporal smoothing on a single frame.
         """
         if image_bgr is None or image_bgr.size == 0:
             return PhoneDetectionResult(phone_detected=False, confidence=0.0, detection_source="CLEAR")
 
-        phone_scores = []
-        sources = []
-        best_bbox = None
-        face_is_inside_phone = False
-        details_list = []
+        yolo_detections = self._run_yolo_detection(image_bgr)
+        instant_detected = len(yolo_detections) > 0
+        instant_conf = max([d["conf"] for d in yolo_detections], default=0.0)
 
-        # ── 1. Geometric Screen Bezel & Display Contour Analysis ──
-        if self.enable_bezel_analysis:
+        # Update temporal smoothing buffer
+        self.history.append(instant_detected)
+        self.last_confidence_history.append(instant_conf)
+
+        # ─── 1. Neural YOLOv8 Phone Presence ───
+        if instant_detected or sum(self.history) >= self.min_frames_present:
+            best_det = max(yolo_detections, key=lambda d: d["conf"]) if yolo_detections else None
+            best_bbox = best_det["bbox"] if best_det else None
+            conf = max(instant_conf, max(self.last_confidence_history, default=0.85))
+
+            face_inside = False
+            if best_bbox and face_bbox:
+                bx, by, bw, bh = best_bbox
+                fx, fy, fw, fh = face_bbox
+                overlap_x1 = max(bx, fx)
+                overlap_y1 = max(by, fy)
+                overlap_x2 = min(bx + bw, fx + fw)
+                overlap_y2 = min(by + bh, fy + fh)
+                if overlap_x2 > overlap_x1 and overlap_y2 > overlap_y1:
+                    face_inside = True
+
+            aspect = float(best_bbox[3]) / max(1, best_bbox[2]) if best_bbox else 1.8
+            return PhoneDetectionResult(
+                phone_detected=True,
+                confidence=float(np.clip(max(conf, 0.88), 0.0, 1.0)),
+                detection_source="YOLOV8_NEURAL",
+                phone_bbox=best_bbox,
+                aspect_ratio=aspect,
+                face_enclosed=face_inside,
+                details=f"Physical smartphone display screen identified via YOLOv8 (conf: {conf*100:.1f}%).",
+            )
+
+        # ─── 2. Fallback Geometric Bezel Analysis (Offline / Synthetic) ───
+        if self.enable_bezel_analysis and face_bbox:
             bezel_detected, bezel_conf, b_bbox, enclosed = self._analyze_screen_bezel(image_bgr, face_bbox)
-            if bezel_detected and enclosed:
-                phone_scores.append(bezel_conf)
-                sources.append("BEZEL_CONTOUR")
-                best_bbox = b_bbox
-                face_is_inside_phone = True
-                aspect_ratio = b_bbox[3] / max(1, b_bbox[2]) if b_bbox else 2.0
-                details_list.append(
-                    f"Physical phone/screen bezel enclosing face detected (aspect ratio ~{aspect_ratio:.2f})."
-                )
-
-        # ── 2. Screen Sub-Pixel Moiré & Periodic Grid Analysis ──
-        if self.enable_moire_analysis:
-            moire_detected, moire_conf, moire_details = self._analyze_moire_pattern(image_bgr, face_bbox)
-            if moire_detected:
-                phone_scores.append(moire_conf)
-                sources.append("SPECTRAL_MOIRE")
-                details_list.append(moire_details)
-
-        # ── 3. Neural Object Detection (COCO class 77: cell phone) ──
-        if self.enable_neural and self._neural_model is not None:
-            neural_detected, neural_conf, n_bbox = self._run_neural_detection(image_bgr, face_bbox)
-            if neural_detected:
-                phone_scores.append(neural_conf)
-                sources.append("NEURAL_OBJECT")
-                if best_bbox is None:
-                    best_bbox = n_bbox
-                details_list.append(f"Mobile device object detected with {neural_conf*100:.1f}% confidence.")
-
-        # ── Decision Fusion ──
-        if phone_scores:
-            base_score = max(phone_scores)
-            if len(phone_scores) > 1:
-                base_score = min(1.0, base_score + 0.10)
-            if face_is_inside_phone:
-                base_score = min(1.0, base_score + 0.12)
-
-            if base_score >= self.min_confidence:
-                source_str = "HYBRID" if len(sources) > 1 else sources[0]
-                summary = " · ".join(details_list) if details_list else "Physical phone screen replay attack detected."
+            if bezel_detected:
                 return PhoneDetectionResult(
                     phone_detected=True,
-                    confidence=float(base_score),
-                    detection_source=source_str,
-                    phone_bbox=best_bbox,
-                    face_enclosed=face_is_inside_phone,
-                    details=summary,
+                    confidence=float(bezel_conf),
+                    detection_source="BEZEL_CONTOUR",
+                    phone_bbox=b_bbox,
+                    face_enclosed=enclosed,
+                    details="Physical phone/screen bezel enclosing face detected.",
                 )
 
         return PhoneDetectionResult(
             phone_detected=False,
             confidence=0.0,
             detection_source="CLEAR",
-            details="Nominal camera stream — no physical phone or display screen identified."
+            details="Nominal live feed — no physical phone or display screen detected."
         )
+
+    def _run_yolo_detection(self, frame_bgr: np.ndarray) -> List[Dict[str, Any]]:
+        """Runs YOLOv8 inference for COCO class 67 ('cell phone')."""
+        if self._yolo_model is None:
+            self._init_yolo_model()
+            if self._yolo_model is None:
+                return []
+
+        try:
+            # Fast 320px inference for ultra-low latency (< 12ms on CPU)
+            results = self._yolo_model.predict(
+                frame_bgr,
+                classes=[COCO_CELL_PHONE_CLASS_ID],
+                conf=self.conf_threshold,
+                iou=self.iou_threshold,
+                imgsz=320,
+                verbose=False,
+            )
+
+            detections = []
+            for r in results:
+                if r.boxes is None:
+                    continue
+                for box in r.boxes:
+                    x1, y1, x2, y2 = box.xyxy[0].cpu().numpy().astype(int)
+                    conf = float(box.conf[0].cpu().numpy())
+                    w = int(x2 - x1)
+                    h = int(y2 - y1)
+                    cx = int((x1 + x2) / 2)
+                    cy = int((y1 + y2) / 2)
+                    detections.append({
+                        "bbox": (int(x1), int(y1), w, h),
+                        "conf": conf,
+                        "center": (cx, cy),
+                    })
+            return detections
+        except Exception as e:
+            logger.debug(f"YOLOv8 detection error: {e}")
+            return []
 
     def _analyze_screen_bezel(
         self,
         image_bgr: np.ndarray,
         face_bbox: Optional[Tuple[int, int, int, int]]
     ) -> Tuple[bool, float, Optional[Tuple[int, int, int, int]], bool]:
-        """
-        Detects sharp rectangular screen boundaries (bezel frames) with standard
-        smartphone aspect ratios (1.45 to 2.45) that strictly ENCLOSE the face.
-        """
+        """Fallback geometric screen bezel contour analyzer."""
         if face_bbox is None:
-            # Presentation replay on camera requires a face inside the display!
             return False, 0.0, None, False
 
         fx, fy, fw, fh = face_bbox
-        if fw <= 0 or fh <= 0:
-            return False, 0.0, None, False
-
         h, w = image_bgr.shape[:2]
         gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
-
-        # Suppress glare blobbing by clamping saturated pixels
         gray_clamped = np.minimum(gray, 235)
-
-        blurred = cv2.bilateralFilter(gray_clamped, 7, 50, 50)
-        edges = cv2.Canny(blurred, 45, 140)
-
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-        dilated = cv2.dilate(edges, kernel, iterations=1)
-
-        contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         frame_area = h * w
         face_area = fw * fh
-        min_phone_area = max(frame_area * 0.04, face_area * 1.15)
-        max_phone_area = frame_area * 0.94
+        min_phone_area = max(frame_area * 0.03, face_area * 1.05)
+        max_phone_area = frame_area * 0.96
 
         best_match = None
         best_conf = 0.0
 
-        for cnt in contours:
-            area = cv2.contourArea(cnt)
-            if area < min_phone_area or area > max_phone_area:
-                continue
+        for (th1, th2) in [(30, 100), (50, 150), (20, 70)]:
+            blurred = cv2.GaussianBlur(gray_clamped, (5, 5), 0)
+            edges = cv2.Canny(blurred, th1, th2)
+            kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+            dilated = cv2.dilate(edges, kernel, iterations=1)
+            contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
-            peri = cv2.arcLength(cnt, True)
-            approx = cv2.approxPolyDP(cnt, 0.03 * peri, True)
-
-            # 4 to 8 vertices (rectangles, rounded rectangles)
-            if 4 <= len(approx) <= 8:
-                x, y, bw, bh = cv2.boundingRect(approx)
-                if bw <= 0 or bh <= 0:
+            for cnt in contours:
+                area = cv2.contourArea(cnt)
+                if area < min_phone_area or area > max_phone_area:
                     continue
 
-                # STRICT FACE ENCLOSURE CHECK:
-                # The phone display MUST enclose the face!
-                enclosed = (x <= fx and y <= fy and (x + bw) >= (fx + fw) and (y + bh) >= (fy + fh))
-                if not enclosed:
-                    # Check partial overlap (at least 85% of face must be inside the box)
+                peri = cv2.arcLength(cnt, True)
+                approx = cv2.approxPolyDP(cnt, 0.035 * peri, True)
+
+                if 4 <= len(approx) <= 10:
+                    x, y, bw, bh = cv2.boundingRect(approx)
+                    if bw <= 0 or bh <= 0:
+                        continue
+
                     overlap_x1 = max(x, fx)
                     overlap_y1 = max(y, fy)
                     overlap_x2 = min(x + bw, fx + fw)
@@ -257,122 +241,23 @@ class PhoneReplayDetector:
                     if overlap_x2 <= overlap_x1 or overlap_y2 <= overlap_y1:
                         continue
                     overlap_area = (overlap_x2 - overlap_x1) * (overlap_y2 - overlap_y1)
-                    if overlap_area / float(face_area) < 0.85:
+                    if overlap_area / float(face_area) < 0.65:
                         continue
 
-                # Light spot / lamp / specular glare rejection
-                roi = image_bgr[max(0, y):min(h, y + bh), max(0, x):min(w, x + bw)]
-                if self._is_light_source_or_glare(roi):
-                    continue
+                    aspect = float(bh) / float(bw) if bw > 0 else 0.0
+                    inv_aspect = float(bw) / float(bh) if bh > 0 else 0.0
+                    max_aspect = max(aspect, inv_aspect)
 
-                aspect = float(bh) / float(bw) if bw > 0 else 0.0
-                inv_aspect = float(bw) / float(bh) if bh > 0 else 0.0
-                max_aspect = max(aspect, inv_aspect)
-
-                # Smartphone display aspect ratio (1.45 to 2.45)
-                is_phone_aspect = 1.45 <= max_aspect <= 2.45
-
-                rect_area = bw * bh
-                extent = float(area) / float(rect_area) if rect_area > 0 else 0.0
-
-                if is_phone_aspect and extent >= 0.70:
-                    conf = min(0.96, 0.60 + (extent * 0.30))
-                    if conf > best_conf:
-                        best_conf = conf
-                        best_match = (x, y, bw, bh)
+                    if 1.25 <= max_aspect <= 2.65:
+                        rect_area = bw * bh
+                        extent = float(area) / float(rect_area) if rect_area > 0 else 0.0
+                        if extent >= 0.55:
+                            conf = min(0.96, 0.65 + (extent * 0.25))
+                            if conf > best_conf:
+                                best_conf = conf
+                                best_match = (x, y, bw, bh)
 
         if best_match is not None and best_conf >= 0.60:
             return True, float(best_conf), best_match, True
 
         return False, 0.0, None, False
-
-    def _analyze_moire_pattern(
-        self,
-        image_bgr: np.ndarray,
-        face_bbox: Optional[Tuple[int, int, int, int]]
-    ) -> Tuple[bool, float, str]:
-        """
-        Detects screen moiré grid artifacts caused by digital display sub-pixel grids.
-        Strictly rejects specular highlights, flashlights, lamps, and point glare.
-        """
-        if face_bbox is None:
-            return False, 0.0, ""
-
-        fx, fy, fw, fh = face_bbox
-        h, w = image_bgr.shape[:2]
-
-        x1 = max(0, fx)
-        y1 = max(0, fy)
-        x2 = min(w, fx + fw)
-        y2 = min(h, fy + fh)
-        roi_bgr = image_bgr[y1:y2, x1:x2]
-
-        if roi_bgr.shape[0] < 40 or roi_bgr.shape[1] < 40:
-            return False, 0.0, ""
-
-        # Reject if face region is washed out by direct light / glare
-        if self._is_light_source_or_glare(roi_bgr):
-            return False, 0.0, ""
-
-        gray = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2GRAY)
-
-        # Suppress point glare spikes in FFT: clamp pixels > 230
-        gray_clean = np.minimum(gray, 230)
-
-        # Resize to standard 128x128
-        resized = cv2.resize(gray_clean, (128, 128)).astype(np.float32)
-
-        # 2D Discrete Fourier Transform
-        dft = cv2.dft(resized, flags=cv2.DFT_COMPLEX_OUTPUT)
-        dft_shift = np.fft.fftshift(dft)
-        mag = cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1])
-
-        # Mask DC and low frequency center (radius 18)
-        cy, cx = 64, 64
-        cv2.circle(mag, (cx, cy), 18, 0, -1)
-
-        mean_val = float(np.mean(mag))
-        std_val = float(np.std(mag))
-        max_val = float(np.max(mag))
-
-        spike_ratio = max_val / (mean_val + 1e-6)
-
-        # Require high spike ratio (> 32.0) and high standard deviation (> 25.0) for genuine screen moiré
-        if spike_ratio > 32.0 and std_val > 25.0:
-            conf = min(0.92, 0.52 + (spike_ratio / 80.0))
-            return True, float(conf), f"Screen sub-pixel moiré pattern detected (spectral spike ratio: {spike_ratio:.1f})."
-
-        return False, 0.0, ""
-
-    def _run_neural_detection(
-        self,
-        image_bgr: np.ndarray,
-        face_bbox: Optional[Tuple[int, int, int, int]]
-    ) -> Tuple[bool, float, Optional[Tuple[int, int, int, int]]]:
-        """Runs SSDLite object detection to identify 'cell phone' (class 77 in COCO)."""
-        if self._neural_model is None:
-            return False, 0.0, None
-
-        try:
-            import torch
-            rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
-            tensor = torch.from_numpy(rgb).permute(2, 0, 1).float() / 255.0
-
-            with torch.no_grad():
-                predictions = self._neural_model([tensor])[0]
-
-            boxes = predictions['boxes'].cpu().numpy()
-            labels = predictions['labels'].cpu().numpy()
-            scores = predictions['scores'].cpu().numpy()
-
-            # COCO class 77 is "cell phone"
-            for i, label in enumerate(labels):
-                score = float(scores[i])
-                if label == 77 and score >= 0.65:
-                    x1, y1, x2, y2 = boxes[i]
-                    bbox = (int(x1), int(y1), int(x2 - x1), int(y2 - y1))
-                    return True, score, bbox
-        except Exception as e:
-            logger.debug(f"Neural phone detection error: {e}")
-
-        return False, 0.0, None

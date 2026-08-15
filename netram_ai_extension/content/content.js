@@ -11,7 +11,7 @@
  * - Floating badges with hoverable neural inspector popovers
  */
 (() => {
-  const DEFAULT_CLOUD_URL = "wss://netram-deepfake-detection.up.railway.app";
+  const DEFAULT_CLOUD_URL = "ws://127.0.0.1:8765";
   let configuredServerUrl = DEFAULT_CLOUD_URL;
   let overlayEnabled = true;
   let autoChatNotice = true;
@@ -49,8 +49,13 @@
 
   /* ── URL Normalizer: auto-convert https/http to wss/ws ── */
   function normalizeWsUrl(url) {
-    if (!url) return DEFAULT_CLOUD_URL;
+    if (!url) return "ws://127.0.0.1:8765";
     url = url.trim();
+    if (url.includes("127.0.0.1") || url.includes("localhost") || url.includes(":8765")) {
+      url = url.replace(/^https?:\/\//i, "ws://").replace(/^wss:\/\//i, "ws://");
+      if (!url.startsWith("ws://")) url = "ws://" + url;
+      return url;
+    }
     if (url.startsWith("https://")) url = "wss://" + url.slice(8);
     else if (url.startsWith("http://")) url = "ws://" + url.slice(7);
     if (!url.startsWith("ws://") && !url.startsWith("wss://")) url = "wss://" + url;
@@ -642,7 +647,20 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       const parts = t.split(" - ");
       if (parts[0].trim().length >= 2) t = parts[0].trim();
     }
+    // Remove newlines and excess whitespace
+    t = t.replace(/\r?\n|\r/g, " ").replace(/\s+/g, " ").trim();
     t = t.replace(/^[\s\u200B-\u200D\uFEFF\u200E\u200F]+/, "").trim();
+
+    // Deduplicate repeated tokens (e.g. "Krish ArdeshanaKrish Ard" -> "Krish Ardeshana")
+    for (let len = Math.floor(t.length / 2); len >= 4; len--) {
+      const prefix = t.slice(0, len);
+      const remainder = t.slice(len);
+      if (remainder.startsWith(prefix.slice(0, Math.min(len, remainder.length)))) {
+        t = prefix;
+        break;
+      }
+    }
+
     return t.slice(0, 24);
   }
 

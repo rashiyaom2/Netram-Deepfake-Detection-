@@ -61,7 +61,7 @@ def main():
     print(f"\n{YELLOW}Engine is listening for Chrome Extension connections... (Press Ctrl+C to stop){RESET}\n")
 
     try:
-        run_server(host="127.0.0.1", port=8765)
+        run_server(host="0.0.0.0", port=8765)
     except KeyboardInterrupt:
         print(f"\n{YELLOW}Netram AI local inference engine stopped.{RESET}\n")
 

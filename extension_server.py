@@ -361,6 +361,7 @@ class DeepfakeExtensionServer:
             "blazeface": os.path.exists("models/blaze_face_short_range.tflite"),
             "freq_classifier": os.path.exists("models/freq_classifier.pt"),
             "fusion_head": os.path.exists("models/fusion_head.pkl"),
+            "yolo_phone_detector": os.path.exists("models/yolov8n.pt") or os.path.exists("yolov8n.pt"),
             "aasist_audio": os.path.exists("assist/weights/AASIST.pth"),
             "syncnet_lip_sync": os.path.exists("models/sync_net.pt"),
         }

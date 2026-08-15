@@ -241,10 +241,9 @@ class TestTemporalTracker:
             bs = _make_branch_scores()
             result = tracker.update(af, bs)
 
-        # After 16 seconds with 0 blinks at low FPS (~2.2 FPS), liveness shows moderate concern
-        # but NOT full escalation (low-FPS blink detection is unreliable at 2 FPS).
-        assert result.p_liveness > 0.0, "Should show some liveness concern with zero blinks"
-        assert result.p_liveness < 0.50, "Should not fully escalate at low FPS"
+        # After 16 seconds of completely frozen static landmarks with 0 blinks,
+        # the system correctly identifies a rigid static photo / presentation attack.
+        assert result.p_liveness >= 0.80, "Static unmoving photo should flag presentation attack"
 
     def test_blink_frequency_with_one_natural_blink_in_fifteen_seconds(self):
         tracker = TemporalTracker(sequence_model=heuristic_sequence_scorer())
