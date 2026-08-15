@@ -110,13 +110,17 @@ def default_onnx_spatial(cfg: BranchConfig) -> SpatialScorerFn:
 
         if raw_out.ndim >= 2 and raw_out.shape[-1] >= 2:
             logits = raw_out.reshape(-1, raw_out.shape[-1])
-            # Calibrated softmax for standard binary ViT architectures (Class 0: Real, Class 1: Fake)
+            # Calibrated softmax with temperature scaling & decision boundary bias
+            # Model neutral baseline diff sits near +0.28. Bias subtraction of 2.00 maps authentic faces
+            # to nominal P ~0.10-0.22, eliminating uncalibrated 57% floating jumps.
             diff = float(logits[0, 1] - logits[0, 0])
-            p_spatial = float(1.0 / (1.0 + np.exp(-diff)))
+            calibrated_logit = (diff - 2.00) / 1.40
+            p_spatial = float(1.0 / (1.0 + np.exp(-calibrated_logit)))
             p_spatial = float(np.clip(p_spatial, 0.0, 1.0))
         else:
             logit = float(raw_out.reshape(-1)[0])
-            p_spatial = float(np.clip(1.0 / (1.0 + np.exp(-logit)), 0.0, 1.0))
+            calibrated_logit = (logit - 1.50) / 1.40
+            p_spatial = float(np.clip(1.0 / (1.0 + np.exp(-calibrated_logit)), 0.0, 1.0))
 
 
         # Generate a consistent 512-d embedding vector for downstream temporal tracker
@@ -216,10 +220,12 @@ def heuristic_spatial() -> SpatialScorerFn:
         r, g, b = face_crop_rgb01[:, :, 0], face_crop_rgb01[:, :, 1], face_crop_rgb01[:, :, 2]
         rg_corr = float(np.corrcoef(r.flatten(), g.flatten())[0, 1])
         rb_corr = float(np.corrcoef(r.flatten(), b.flatten())[0, 1])
-        # Combine into a heuristic "suspicion" score
-        norm_var = float(np.clip(1.0 - texture_var / 0.05, 0.0, 1.0))
-        corr_score = float(np.clip((rg_corr + rb_corr) / 2.0, 0.0, 1.0))
-        p_spatial = float(np.clip(0.4 * norm_var + 0.6 * corr_score, 0.0, 1.0))
+        # Combine into a calibrated heuristic "suspicion" score:
+        # Human skin naturally exhibits high RGB correlation (r ~ 0.90).
+        # Generative / face-swap artifacts cause channel divergence and blur texture loss.
+        corr_disparity = float(abs(rg_corr - rb_corr))
+        norm_var = float(np.clip(1.0 - texture_var / 0.02, 0.0, 1.0))
+        p_spatial = float(np.clip(0.4 * norm_var + 0.6 * (corr_disparity * 2.5), 0.0, 1.0))
         # Generate a deterministic 512-d pseudo-embedding from image statistics
         rng = np.random.RandomState(int(gray.sum() * 1000) % (2**31))
         embedding = rng.randn(512).astype(np.float32)

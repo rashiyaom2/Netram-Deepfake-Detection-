@@ -97,19 +97,25 @@ def compute_landmark_deltas(
     return deltas
 
 
-def jitter_score_from_history(delta_history: List[List[float]]) -> float:
+def jitter_score_from_history(delta_history: List[List[float]], max_val: float = 1.2, scale: float = 0.0002) -> float:
     """
     Aggregate scale-invariant micro-jitter score from landmark delta history.
-    Synthetic face masks exhibit rapid, high-frequency, uncoordinated landmark oscillations.
+    Uses a second-order high-pass difference (acceleration) and outlier clipping
+    to eliminate macro head rotation and transient re-detection spikes,
+    leaving a pure high-frequency micro-jitter estimation.
     """
     if len(delta_history) < 2:
         return 0.0
 
-    arr = np.array(delta_history)  # (n_frames, n_landmarks)
-    per_landmark_var = np.var(arr, axis=0)
+    arr = np.clip(np.array(delta_history), -max_val, max_val)
+    acc = np.diff(arr, axis=0)
+    if len(acc) < 1:
+        return 0.0
+
+    per_landmark_var = np.var(acc, axis=0)
     mean_var = float(np.mean(per_landmark_var))
-    # Normalized scale-invariant threshold (micro-jitter on fake face-swaps > 0.008)
-    score = float(np.clip(mean_var / 0.008, 0.0, 1.0))
+    # Calibrated threshold (scale=0.0002 maps micro-jitter to [0,1] suspicion score)
+    score = float(np.clip(mean_var / scale, 0.0, 1.0))
     return score
 
 
@@ -449,10 +455,37 @@ class TemporalTracker:
         if len(self._landmark_history) >= 10:
             if stillness_score > 0.35:
                 n_blinks = len(self._blink_timestamps)
+                elapsed = now - self._first_seen_time if self._first_seen_time else 0.0
+                n_frames = len(self._landmark_history)
+
+                # Low-FPS guard: at 3 FPS, blink detection is unreliable.
+                # Natural humans blink ~15-20x/min. At 3 FPS over a 15s window,
+                # we have only 45 frames — many blinks will be missed entirely
+                # because the ~150ms blink falls between two 333ms captures.
+                # Only escalate p_liveness to high values after extended observation
+                # AND if the face is truly frozen (presentation attack / static photo).
+                fps_estimate = n_frames / max(elapsed, 1.0)
+                is_low_fps = fps_estimate < 8.0
+
                 if n_blinks == 0:
-                    p_liveness = float(np.clip(stillness_score * 1.0, 0.0, 1.0))
+                    if is_low_fps:
+                        # Low FPS: cap liveness penalty. Blink absence at low FPS is
+                        # NOT reliable evidence of a presentation attack.
+                        if elapsed < 30.0:
+                            # Under 30s of observation: very unreliable at low FPS
+                            p_liveness = float(np.clip(stillness_score * 0.15, 0.0, 0.18))
+                        else:
+                            # After 30s with zero blinks at any FPS: more suspicious
+                            p_liveness = float(np.clip(stillness_score * 0.40, 0.0, 0.45))
+                    else:
+                        # High FPS (>= 8): blink detection is reliable
+                        if elapsed < 10.0:
+                            p_liveness = float(np.clip(stillness_score * 0.30, 0.0, 0.35))
+                        else:
+                            p_liveness = float(np.clip(stillness_score * 0.75, 0.0, 0.80))
                 else:
-                    p_liveness = float(np.clip(stillness_score * 0.35, 0.0, 0.45))
+                    # Blinks detected: genuine human, low liveness concern
+                    p_liveness = float(np.clip(stillness_score * 0.12, 0.0, 0.15))
             else:
                 p_liveness = 0.0
 

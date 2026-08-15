@@ -131,16 +131,18 @@ def default_onnx_b0_scorer(cfg: CascadeConfig) -> ScorerFn:
         raw_out = np.asarray(outputs[0])
 
         if raw_out.ndim >= 2 and raw_out.shape[-1] >= 2:
-            # 2-class logits (e.g. ViT [Real, Fake]): compute softmax over classes
+            # 2-class logits (e.g. ViT [Real, Fake]): calibrated scoring for triage gating.
+            # The ViT model neutral baseline diff is ~+0.28, which raw softmax maps to 0.57.
+            # Apply temperature scaling & bias to map clean faces to low suspicion (<0.15).
             logits = raw_out.reshape(-1, raw_out.shape[-1])
-            exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
-            probs = exp_logits / (np.sum(exp_logits, axis=-1, keepdims=True) + 1e-8)
-            # Index 1 corresponds to Fake in standard 2-class classifiers (Class 0 = Real, Class 1 = Fake)
-            return float(np.clip(probs[0, 1], 0.0, 1.0))
+            diff = float(logits[0, 1] - logits[0, 0])
+            calibrated = (diff - 1.50) / 1.80
+            return float(np.clip(1.0 / (1.0 + np.exp(-calibrated)), 0.0, 1.0))
         else:
             # 1-class binary logit
             logit = float(raw_out.reshape(-1)[0])
-            return float(np.clip(sigmoid(logit), 0.0, 1.0))
+            calibrated = (logit - 1.00) / 1.80
+            return float(np.clip(1.0 / (1.0 + np.exp(-calibrated)), 0.0, 1.0))
 
     return _score
 

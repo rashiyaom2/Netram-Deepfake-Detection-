@@ -185,21 +185,8 @@ class PipelineOrchestrator:
         # Stage 4: Multi-modal neural branches (ViT + Frequency + A/V Sync + Phone Replay + AR Filter)
         branch_scores = self._branch_runner.run(aligned, raw_frame.image_bgr, quality.face_bbox)
 
-        # Blend cascade triage score if elevated
-        if cascade and cascade.suspicion_score > branch_scores.p_spatial:
-            branch_scores = BranchScores(
-                p_spatial=max(branch_scores.p_spatial, cascade.suspicion_score),
-                p_freq=branch_scores.p_freq,
-                embedding=branch_scores.embedding,
-                p_sync=branch_scores.p_sync,
-                av_mismatch_flag=branch_scores.av_mismatch_flag,
-                p_voice_clone=branch_scores.p_voice_clone,
-                phone_detected=branch_scores.phone_detected,
-                phone_confidence=branch_scores.phone_confidence,
-                ar_filter_detected=branch_scores.ar_filter_detected,
-                ar_filter_confidence=branch_scores.ar_filter_confidence,
-                filter_type=branch_scores.filter_type,
-            )
+        # Note: Stage-0 cascade is solely an early-drop triage gate to discard confidently real frames.
+        # Stage-4 aligned spatial branch is the calibrated neural source of truth for spatial artifacts.
 
         # Stage 5: Temporal verification (continuous landmark & feature tracking)
         tracker = self._get_temporal_tracker(pid)

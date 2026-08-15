@@ -39,6 +39,27 @@ logging.basicConfig(
 )
 logger = logging.getLogger("extension_server")
 
+class WebsocketNoiseFilter(logging.Filter):
+    def filter(self, record):
+        # Ignore common expected connection drops during handshakes (EOFError, ConnectionReset, InvalidMessage)
+        if record.exc_info:
+            exc_type, exc_val, _ = record.exc_info
+            if exc_type in (EOFError, ConnectionResetError, ConnectionAbortedError):
+                return False
+            # Check string representation for websockets-specific invalid handshakes
+            if "InvalidMessage" in str(exc_type) or "InvalidHandshake" in str(exc_type):
+                return False
+        # Suppress handshake fail messages
+        msg = record.getMessage()
+        if "opening handshake failed" in msg or "connection open failed" in msg:
+            return False
+        return True
+
+# Add filter to websockets loggers
+websocket_filter = WebsocketNoiseFilter()
+logging.getLogger("websockets.server").addFilter(websocket_filter)
+logging.getLogger("websockets.protocol").addFilter(websocket_filter)
+
 
 class DeepfakeExtensionServer:
     def __init__(self, host: str = "0.0.0.0", port: int = 8765):
@@ -198,11 +219,11 @@ class DeepfakeExtensionServer:
         raw_li = float(temporal_result.p_liveness)
         raw_jit = float(temporal_result.jitter_score)
 
-        p_sp = sb["p_sp"] = (0.22 * raw_sp) + (0.78 * sb.get("p_sp", raw_sp))
-        p_fr = sb["p_fr"] = (0.22 * raw_fr) + (0.78 * sb.get("p_fr", raw_fr))
-        p_te = sb["p_te"] = (0.22 * raw_te) + (0.78 * sb.get("p_te", raw_te))
-        p_li = sb["p_li"] = (0.22 * raw_li) + (0.78 * sb.get("p_li", raw_li))
-        jitter_val = sb["jitter"] = (0.22 * raw_jit) + (0.78 * sb.get("jitter", raw_jit))
+        p_sp = sb["p_sp"] = (0.15 * raw_sp) + (0.85 * sb.get("p_sp", raw_sp))
+        p_fr = sb["p_fr"] = (0.15 * raw_fr) + (0.85 * sb.get("p_fr", raw_fr))
+        p_te = sb["p_te"] = (0.15 * raw_te) + (0.85 * sb.get("p_te", raw_te))
+        p_li = sb["p_li"] = (0.15 * raw_li) + (0.85 * sb.get("p_li", raw_li))
+        jitter_val = sb["jitter"] = (0.15 * raw_jit) + (0.85 * sb.get("jitter", raw_jit))
 
         p_sy = float(branch_scores.p_sync) if branch_scores.p_sync is not None else 0.0
         p_vc = float(branch_scores.p_voice_clone) if branch_scores.p_voice_clone is not None else 0.0

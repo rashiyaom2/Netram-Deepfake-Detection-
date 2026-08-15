@@ -540,7 +540,7 @@
       </div>
       <div class="header-actions">
         <span class="cert-badge">Zero-retention certified</span>
-        <button class="btn-action" onclick="window.print()">Print agreement</button>
+        <button class="btn-action" id="btn-print">Print agreement</button>
       </div>
     </div>
   </header>
@@ -750,52 +750,7 @@
     © 2026 Netram AI Defense Inc. All rights reserved. Zero-retention ephemeral inspection engine.
   </footer>
 
-  <script>
-    const cb = document.getElementById("cb-accept-terms");
-    const btn = document.getElementById("btn-accept-terms");
-
-    function updateAcceptState() {
-      btn.disabled = !cb.checked;
-    }
-    cb.addEventListener("change", updateAcceptState);
-
-    function completeAcceptance() {
-      const timestamp = new Date().toISOString();
-      try {
-        if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
-          chrome.storage.local.set({ termsAccepted: true, termsAcceptedTimestamp: timestamp }, () => {
-            finishUI();
-          });
-        } else {
-          localStorage.setItem("netram_terms_accepted", "true");
-          finishUI();
-        }
-      } catch (e) {
-        finishUI();
-      }
-    }
-
-    function finishUI() {
-      btn.textContent = "Accepted";
-      btn.disabled = true;
-    }
-
-    btn.addEventListener("click", completeAcceptance);
-
-    // Active TOC link on scroll
-    const sections = document.querySelectorAll(".legal-section");
-    const links = document.querySelectorAll(".toc-links a");
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          links.forEach(l => l.classList.remove("active"));
-          const match = document.querySelector(`.toc-links a[href="#${entry.target.id}"]`);
-          if (match) match.classList.add("active");
-        }
-      });
-    }, { rootMargin: "-40% 0px -50% 0px" });
-    sections.forEach(s => observer.observe(s));
-  </script>
+  <script src="terms.js"></script>
 </body>
 
 </html>

@@ -1,13 +1,13 @@
 /**
- * Netram AI Deepfake Shield — Enterprise Content Script
+ * Netram — "God's Eye" Deepfake Shield — Enterprise Content Script
  * Injects into Google Meet / Zoom Web / Teams Web / Testbed.
- * 
+ *
  * Features:
  * - Real-time video & WebRTC audio capture with multi-modal neural streaming
  * - Google Meet Automated In-Chat Legal Liability & Participant Consent Broadcaster
- * - Top-level Floating Glassmorphic Compliance & Privacy Bar
+ * - Top-level floating glass Compliance & Privacy bar (brand nav styling)
  * - Comprehensive Participant Legal Terms & Non-Misuse Guarantee Modal
- * - Draggable Siri-styled Glassmorphism HUD widget
+ * - Draggable glass HUD widget with the Netram signal ring
  * - Floating badges with hoverable neural inspector popovers
  */
 (() => {
@@ -32,6 +32,10 @@
   let complianceBarEl = null;
   let legalModalEl = null;
   let activeVerdict = null;
+  let selectedTargetParticipantId = "auto";
+  let participantVerdicts = new Map();
+  let lastAutoTargetSwitch = 0;
+  let currentAutoTarget = null;
 
   // Generate or retrieve unique Session Verification ID for this meeting tab
   const MEETING_SESSION_ID = (() => {
@@ -78,7 +82,7 @@
           endpointIdx = 0;
           reconnectDelay = 2000;
           if (ws) {
-            try { ws.close(); } catch (_) {}
+            try { ws.close(); } catch (_) { }
             ws = null;
           }
           connect();
@@ -103,6 +107,45 @@
       } else if (request.type === "OPEN_LEGAL_MODAL") {
         openLegalModal();
         sendResponse({ ok: true });
+      } else if (request.type === "GET_PARTICIPANTS" || request.type === "GET_TELEMETRY") {
+        const list = Array.from(trackers.values()).map((t) => ({
+          id: t.id,
+          threat_level: t.data?.threat_level || "CALIBRATING",
+          threat_label: t.data?.threat_label || "Active Stream",
+          score: t.data?.score ?? 0,
+          p_spatial: t.data?.p_spatial ?? 0,
+          p_freq: t.data?.p_freq ?? 0,
+          p_temporal: t.data?.p_temporal ?? 0,
+          p_liveness: t.data?.p_liveness ?? 0,
+          jitter: t.data?.jitter ?? 0,
+          p_voice_clone: t.data?.p_voice_clone ?? null,
+          phone_detected: t.data?.phone_detected ?? false,
+          ar_filter_detected: t.data?.ar_filter_detected ?? false,
+          latency_ms: t.data?.latency_ms ?? 35,
+          frame_idx: t.data?.frame_idx ?? 0,
+          confidence_tier: t.data?.confidence_tier || "High",
+          caution_note: t.data?.caution_note || "",
+          recommendation: t.data?.recommendation || ""
+        }));
+        sendResponse({
+          ok: true,
+          inCall: trackers.size > 0,
+          serverUrl: configuredServerUrl,
+          participants: list,
+          activeVerdict: activeVerdict
+        });
+        return true;
+      } else if (request.type === "SWITCH_SERVER") {
+        if (request.serverUrl) {
+          configuredServerUrl = normalizeWsUrl(request.serverUrl);
+          if (ws) {
+            try { ws.close(); } catch (_) { }
+            ws = null;
+          }
+          connect();
+          sendResponse({ ok: true, serverUrl: configuredServerUrl });
+        }
+        return true;
       }
     });
   }
@@ -111,7 +154,7 @@
     if (!audioCtx) {
       try {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-      } catch (_) {}
+      } catch (_) { }
     }
     return audioCtx;
   }
@@ -126,7 +169,7 @@
       g.gain.setValueAtTime(0.15, ac.currentTime);
       g.gain.exponentialRampToValueAtTime(0.01, ac.currentTime + 0.25);
       o.connect(g); g.connect(ac.destination); o.start(); o.stop(ac.currentTime + 0.3);
-    } catch (_) {}
+    } catch (_) { }
   }
 
   /* ── WebSocket with Auto-Reconnect & Configurable Endpoint ── */
@@ -141,10 +184,10 @@
         try {
           const d = JSON.parse(e.data);
           if (d.type === "verdict" || d.type === "telemetry") handleVerdict(d);
-        } catch (_) {}
+        } catch (_) { }
       };
       ws.onclose = () => { connected = false; ws = null; updateSiriStatus("⚪ Connecting…"); scheduleReconnect(); };
-      ws.onerror = () => { connected = false; try { ws.close(); } catch (_) {} ws = null; updateSiriStatus("⚪ Connecting…"); };
+      ws.onerror = () => { connected = false; try { ws.close(); } catch (_) { } ws = null; updateSiriStatus("⚪ Connecting…"); };
     } catch (_) { connected = false; ws = null; updateSiriStatus("⚪ Connecting…"); scheduleReconnect(); }
   }
 
@@ -170,8 +213,8 @@
      LEGAL LIABILITY, TERMS & GOOGLE MEET CHAT BROADCASTER
      ═══════════════════════════════════════════════════════════════════ */
 
-  const LEGAL_DISCLAIMER_TEXT = 
-`🛡️ [Netram AI Enterprise Defense Notice]
+  const LEGAL_DISCLAIMER_TEXT =
+    `🛡️ [Netram — God's Eye Enterprise Defense Notice]
 Real-time neural deepfake & synthetic media integrity monitoring is active in this meeting session.
 
 🔒 Participant Data Protection & Non-Misuse Guarantee:
@@ -226,7 +269,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     if (meetChatToggle) {
       const isExpanded = meetChatToggle.getAttribute("aria-expanded") === "true" || meetChatToggle.classList.contains("active");
       if (!isExpanded) {
-        try { meetChatToggle.click(); } catch (_) {}
+        try { meetChatToggle.click(); } catch (_) { }
       }
     }
 
@@ -265,10 +308,10 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
             }
 
             sessionStorage.setItem(broadcastKey, "true");
-            showComplianceToast("✅ Netram AI Legal & Privacy Notice announced in meeting chat.");
+            showComplianceToast("✅ Netram Legal & Privacy notice announced in meeting chat.");
           }, 350);
         } catch (err) {
-          console.warn("[Netram AI] Chat automation notice:", err);
+          console.warn("[Netram] Chat automation notice:", err);
         }
       } else {
         // If not found yet and still within 6 retries, retry in 1.5s
@@ -318,7 +361,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     }, 4200);
   }
 
-  /* ── Floating Top Compliance Bar Injection ── */
+  /* ── Floating Top Compliance Bar Injection (Minimal & Professional) ── */
   function injectComplianceBar() {
     if (document.getElementById("netram-compliance-bar")) return;
 
@@ -327,28 +370,27 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     bar.innerHTML = `
       <div class="netram-bar-content">
         <div class="netram-bar-badge">
-          <span class="netram-shield-icon">🛡️</span>
+          <span class="netram-status-dot"></span>
           <div class="netram-badge-text">
-            <span class="netram-badge-title">Netram AI Shield Active</span>
-            <span class="netram-badge-sub">Zero-Retention & Non-Misuse Protected · ${MEETING_SESSION_ID}</span>
+            <span class="netram-badge-title">Netram Active</span>
+            <span class="netram-badge-sub">Zero-Retention</span>
           </div>
         </div>
         <div class="netram-bar-actions">
-          <button class="netram-bar-btn" id="btn-open-legal-terms" title="View Legal Liability & Participant Terms">
-            <span>📜</span> Legal Terms
+          <button type="button" class="netram-bar-btn" id="btn-open-legal-terms" title="Participant Protection & Legal Terms">
+            Legal Terms
           </button>
-          <button class="netram-bar-btn" id="btn-broadcast-chat" title="Broadcast Legal Disclaimer to Meeting Chat">
-            <span>💬</span> Post to Chat
+          <button type="button" class="netram-bar-btn primary" id="btn-broadcast-chat" title="Broadcast Compliance Notice to Meeting Chat">
+            Post to Chat
           </button>
-          <button class="netram-bar-btn" id="btn-copy-terms" title="Copy Disclaimer">
-            <span>📋</span> Copy
+          <button type="button" class="netram-bar-btn" id="btn-copy-terms" title="Copy Compliance Notice">
+            Copy
           </button>
-          <button class="netram-bar-close" id="btn-close-comp-bar" title="Minimize Bar">✕</button>
+          <button type="button" class="netram-bar-close" id="btn-close-comp-bar" title="Dismiss Bar">✕</button>
         </div>
       </div>
-      <div class="netram-bar-minimized" id="netram-bar-minimized" style="display:none;" title="Expand Netram Compliance Shield">
-        <span>🛡️</span>
-        <span class="min-pulse"></span>
+      <div class="netram-bar-minimized" id="netram-bar-minimized" style="display:none;" title="Expand Netram Active Shield">
+        <span class="min-status-dot"></span>
       </div>`;
 
     document.body.appendChild(bar);
@@ -358,7 +400,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     document.getElementById("btn-open-legal-terms").addEventListener("click", openLegalModal);
     document.getElementById("btn-broadcast-chat").addEventListener("click", () => broadcastLegalNoticeToMeetChat(true));
     document.getElementById("btn-copy-terms").addEventListener("click", copyLegalNoticeToClipboard);
-    
+
     // Minimize / Expand logic
     const content = bar.querySelector(".netram-bar-content");
     const minBtn = document.getElementById("netram-bar-minimized");
@@ -404,10 +446,10 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       <div class="netram-modal-card">
         <div class="netram-modal-header">
           <div class="modal-brand">
-            <div class="modal-shield-orb">🛡️</div>
+            <div class="modal-shield-orb"><span class="nt-mark lg"></span></div>
             <div>
               <h2 class="modal-title">Participant Protection & Legal Liability Guarantee</h2>
-              <span class="modal-sub">Netram AI Enterprise Trust, Safety & Zero-Retention Compliance Agreement</span>
+              <span class="modal-sub">Netram — God's Eye Enterprise Trust, Safety & Zero-Retention Compliance Agreement</span>
             </div>
           </div>
           <button class="modal-close-btn" id="modal-btn-close">✕</button>
@@ -425,7 +467,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
             <span class="legal-badge-gold">LEGAL LIABILITY COMMITMENT</span>
             <h3>Strict Non-Misuse & Safe Clip Handling Guarantee</h3>
             <p>
-              By design and strict contractual guarantee, Netram AI certifies that <b>no video clips, screen captures, voice audio recordings, or biometric face vectors</b> from any meeting participant will ever be saved, stored on servers, shared with third parties, sold, or used for AI model retraining.
+              By design and strict contractual guarantee, Netram certifies that <b>no video clips, screen captures, voice audio recordings, or biometric face vectors</b> from any meeting participant will ever be saved, stored on servers, shared with third parties, sold, or used for AI model retraining.
             </p>
           </div>
 
@@ -465,15 +507,12 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
 
           <div class="legal-seal-row">
             <div class="seal-item">
-              <span class="seal-icon">🔒</span>
-              <span class="seal-label">100% Volatile Memory Execution</span>
+              <span class="seal-label">Volatile Memory Execution</span>
             </div>
             <div class="seal-item">
-              <span class="seal-icon">⚡</span>
-              <span class="seal-label">Sub-50ms Edge Telemetry</span>
+              <span class="seal-label">Sub-50ms Real-Time Inference</span>
             </div>
             <div class="seal-item">
-              <span class="seal-icon">📜</span>
               <span class="seal-label">Zero Training Data Harvesting</span>
             </div>
           </div>
@@ -482,13 +521,13 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         <div class="modal-footer">
           <div class="footer-actions-left">
             <button class="modal-btn secondary" id="modal-btn-open-doc">
-              <span>📜</span> Full Legal Docs
+              Full Legal Docs
             </button>
             <button class="modal-btn secondary" id="modal-btn-copy">
-              <span>📋</span> Copy Statement
+              Copy Statement
             </button>
             <button class="modal-btn secondary" id="modal-btn-chat">
-              <span>💬</span> Broadcast to Chat
+              Broadcast to Chat
             </button>
           </div>
           <button class="modal-btn primary" id="modal-btn-confirm">
@@ -543,6 +582,20 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         trackers.set(v, t);
         injectBadge(t);
         attachAudio(t);
+      } else {
+        // Continuous name hydration: if previously generic (Participant 1), update to real Meet name once DOM hydrates
+        const t = trackers.get(v);
+        if (t.id.startsWith("Participant ")) {
+          const betterId = pid(v, i);
+          if (!betterId.startsWith("Participant ")) {
+            const oldId = t.id;
+            t.id = betterId;
+            if (participantVerdicts.has(oldId)) {
+              participantVerdicts.set(betterId, participantVerdicts.get(oldId));
+              participantVerdicts.delete(oldId);
+            }
+          }
+        }
       }
     });
 
@@ -550,34 +603,86 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       if (!videos.includes(v) || !document.body.contains(v)) {
         t.badge?.remove();
         trackers.delete(v);
+        participantVerdicts.delete(t.id);
       }
     }
 
     // Update floating HUD visibility based on active camera feeds
     updateHudVisibility();
+    updateHudTargetPills();
 
     // Check if user entered an active meeting to broadcast legal notice to participants
     checkAndBroadcastMeetingNotice();
   }
 
+  function isValidName(str) {
+    if (!str || typeof str !== "string") return false;
+    str = str.trim();
+    if (str.length < 2 || str.length > 40) return false;
+    if (str.includes("http") || str.startsWith("{") || str.startsWith("<")) return false;
+    const invalidKeywords = [
+      "turn off", "turn on", "mute", "unmute", "more options", "pin to screen",
+      "pin", "unpin", "video", "audio", "camera", "microphone", "settings",
+      "chat", "people", "activities", "info", "leave call", "end call", "raise hand"
+    ];
+    const lower = str.toLowerCase();
+    for (const kw of invalidKeywords) {
+      if (lower === kw || lower.startsWith(kw + " ") || lower.endsWith(" " + kw)) return false;
+    }
+    return true;
+  }
+
+  function cleanName(str) {
+    let t = str.trim();
+    if (t.includes("(")) {
+      const parts = t.split("(");
+      if (parts[0].trim().length >= 2) t = parts[0].trim();
+    }
+    if (t.includes(" - ")) {
+      const parts = t.split(" - ");
+      if (parts[0].trim().length >= 2) t = parts[0].trim();
+    }
+    t = t.replace(/^[\s\u200B-\u200D\uFEFF\u200E\u200F]+/, "").trim();
+    return t.slice(0, 24);
+  }
+
   function pid(v, i) {
+    // 1. Direct attribute on video or container
+    for (const attr of ["data-participant-name", "data-self-name", "data-name", "aria-label", "title"]) {
+      const val = v.getAttribute(attr);
+      if (val && isValidName(val)) return cleanName(val);
+    }
+
+    // 2. Ascend parent hierarchy (up to 15 levels) to match Meet, Zoom, Teams, or Testbed DOM
     let current = v.parentElement;
-    for (let depth = 0; depth < 10 && current && current !== document.body; depth++) {
+    for (let depth = 0; depth < 15 && current && current !== document.body; depth++) {
+      for (const attr of ["data-participant-name", "data-self-name", "aria-label", "data-name"]) {
+        const val = current.getAttribute(attr);
+        if (val && isValidName(val)) return cleanName(val);
+      }
+
       const nameEl = current.querySelector(
-        "div.poVWob, div.d27c6d, div.j7304c, span.notranslate, div.notranslate, div.P3g2nd, [data-self-name], [jsname='r4nke'], .ZmdEae"
+        // Google Meet selectors
+        "div.poVWob, div.d27c6d, div.j7304c, span.notranslate, div.notranslate, div.P3g2nd, [data-self-name], [jsname='r4nke'], [jsname='W28u3e'], .ZmdEae, .gV3Svc, .k315ff, .s5q1re, .XEazBc, " +
+        // Zoom Web selectors
+        ".video-avatar__avatar-name, .name-tag, .name-label, .participants-item__name, [class*='participant-name'], [class*='name-tag'], [class*='nameTag'], [class*='speaker-name'], .video-container__name, " +
+        // MS Teams selectors
+        "[data-cid='roster-avatar'], .ts-calling-participant, [data-tid='participant-name'], [data-tid='calling-participant-stream'], [data-tid='stream-card-title'], " +
+        // Testbed / Sandbox selectors
+        ".card-label, .sb-tag, .p-name, .participant-name, #participant-name, [data-participant-name], .tile-name, .user-name"
       );
       if (nameEl && nameEl.textContent.trim()) {
         const txt = nameEl.textContent.trim();
-        if (txt.length >= 2 && !txt.includes("http") && !txt.includes("{")) {
-          return txt.slice(0, 24);
-        }
+        if (isValidName(txt)) return cleanName(txt);
       }
       current = current.parentElement;
     }
-    const mt = v.closest("[data-participant-id]") || v.closest("[data-requested-participant-id]");
+
+    // 3. Check data-participant-id or data-zoom-participant-id
+    const mt = v.closest("[data-participant-id]") || v.closest("[data-requested-participant-id]") || v.closest("[data-zoom-participant-id]");
     if (mt) {
-      const attr = mt.getAttribute("data-participant-id") || mt.getAttribute("data-requested-participant-id");
-      if (attr) return "User " + attr.slice(-4);
+      const attr = mt.getAttribute("data-participant-name") || mt.getAttribute("data-self-name") || mt.getAttribute("data-participant-id");
+      if (attr && isValidName(attr)) return cleanName(attr);
     }
     return "Participant " + (i + 1);
   }
@@ -610,7 +715,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       source.connect(processor);
       processor.connect(actx.destination);
       tracker.audioSource = source;
-    } catch (_) {}
+    } catch (_) { }
   }
 
   /* ── Badge injection on Video Tiles ── */
@@ -631,8 +736,8 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         <div class="insp-row"><span>Temporal GRU</span><span class="iv iv-temporal">—</span></div>
         <div class="insp-row"><span>Liveness EAR</span><span class="iv iv-liveness">—</span></div>
         <div class="insp-row"><span>Voice Clone</span><span class="iv iv-voice">—</span></div>
-        <div class="insp-row iv-phone-row" style="display:none;"><span>Phone Replay</span><span class="iv iv-phone" style="color:#ef4444; font-weight:700;">🚨 DETECTED</span></div>
-        <div class="insp-row iv-filter-row" style="display:none;"><span>AR Beauty Filter</span><span class="iv iv-filter" style="color:#f59e0b; font-weight:700;">✨ DETECTED</span></div>
+        <div class="insp-row iv-phone-row" style="display:none;"><span>Phone Replay</span><span class="iv iv-phone" style="color:#f0605f; font-weight:700;">🚨 DETECTED</span></div>
+        <div class="insp-row iv-filter-row" style="display:none;"><span>AR Beauty Filter</span><span class="iv iv-filter" style="color:#f5a623; font-weight:700;">✨ DETECTED</span></div>
         <div class="insp-rec" style="display:none;">
           <span class="insp-rec-title">AI Recommendation</span>
           <p class="insp-rec-text"></p>
@@ -642,7 +747,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     t.badge = b;
   }
 
-  /* ── Siri-styled Draggable Floating HUD ── */
+  /* ── Draggable Floating HUD ── */
   function injectSiriHud() {
     if (document.getElementById("aegis-siri-hud")) return;
     const hud = document.createElement("div");
@@ -651,20 +756,32 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
     hud.innerHTML = `
       <div class="siri-header" id="aegis-siri-drag-handle">
         <div class="siri-orb-container">
-          <div class="siri-orb"></div>
+          <span class="netram-status-dot"></span>
           <div class="siri-title-group">
-            <span class="siri-title">Netram Neural HUD</span>
-            <span class="siri-subtitle" id="siri-status-text">🟢 Active</span>
+            <span class="siri-title">Netram Forensic Engine</span>
+            <span class="siri-subtitle" id="siri-status-text">Active</span>
           </div>
         </div>
         <div class="siri-controls">
-          <button class="siri-btn" id="siri-btn-legal" title="View Terms & Liability">📜</button>
-          <button class="siri-btn" id="siri-btn-min" title="Minimize/Expand">_</button>
+          <button class="siri-btn" id="siri-btn-legal" title="View Terms & Liability">Terms</button>
+          <button class="siri-btn" id="siri-btn-min" title="Minimize/Expand">−</button>
         </div>
       </div>
       <div class="siri-body" id="siri-body">
+        <!-- Multi-Participant Target Selector -->
+        <div class="siri-target-section">
+          <div class="siri-target-header">
+            <span class="siri-target-label">ANALYSIS TARGET</span>
+            <span class="siri-target-mode" id="siri-target-mode">Auto (Alerts)</span>
+          </div>
+          <div class="siri-pills-scroll" id="siri-pills-scroll">
+            <button type="button" class="siri-target-pill active" data-target="auto" id="pill-target-auto">
+              <span class="pill-dot auto"></span>Auto (Alerts)
+            </button>
+          </div>
+        </div>
+
         <div class="siri-caution-banner" id="siri-caution">
-          <span class="siri-caution-icon">ℹ️</span>
           <span id="siri-caution-text">Initial baseline calibration in progress (3–5s). Forensic confidence accumulates smoothly.</span>
         </div>
         <div class="siri-hero">
@@ -804,7 +921,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       if (q(".iv-temporal")) q(".iv-temporal").textContent = pct(d.p_temporal);
       if (q(".iv-liveness")) q(".iv-liveness").textContent = pct(d.p_liveness);
       if (q(".iv-voice")) q(".iv-voice").textContent = d.p_voice_clone != null ? pct(d.p_voice_clone) : "N/A";
-      
+
       const phoneRow = q(".iv-phone-row");
       if (phoneRow) {
         phoneRow.style.display = d.phone_detected ? "flex" : "none";
@@ -826,7 +943,7 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       if (level === "clear" || level === "low" || level === "calibrating") t.alerted = false;
     }
 
-    // Update Siri Draggable HUD
+    // Update draggable HUD
     if (siriHudEl) {
       const level = (d.threat_level || "clear").toLowerCase();
       const score = Math.min(1, Math.max(0, d.score || 0));
@@ -849,18 +966,18 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       const pName = document.getElementById("siri-participant-name");
       if (pName) pName.textContent = d.participant_id || "Participant";
 
-      // SVG Ring
+      // SVG Ring — brand signal ramp: teal → sky → amber → orange → red
       const circ = 2 * Math.PI * 22; // 138.2
       const offset = circ * (1 - score);
       const ringFill = document.getElementById("siri-ring-fill");
       if (ringFill) {
         ringFill.style.strokeDashoffset = offset.toFixed(1);
-        let color = "#30d98b";
-        if (score >= 0.82) color = "#f06060";
-        else if (score >= 0.65) color = "#ff9f43";
+        let color = "#2dd4bf";
+        if (score >= 0.82) color = "#f0605f";
+        else if (score >= 0.65) color = "#fb923c";
         else if (score >= 0.45) color = "#f5a623";
-        else if (score >= 0.25) color = "#4fc3f7";
-        else if (level === "calibrating") color = "#af52de";
+        else if (score >= 0.25) color = "#60a5fa";
+        else if (level === "calibrating") color = "#a78bfa";
         ringFill.style.stroke = color;
       }
 
@@ -882,9 +999,9 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         if (txt) txt.textContent = p + "%";
         if (bar) {
           bar.style.width = p + "%";
-          if (v > 0.6) bar.style.background = "#f06060";
+          if (v > 0.6) bar.style.background = "#f0605f";
           else if (v > 0.35) bar.style.background = "#f5a623";
-          else bar.style.background = "#30d98b";
+          else bar.style.background = "#2dd4bf";
         }
       };
       setMetric("spatial", d.p_spatial);
@@ -896,6 +1013,16 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
       const recContent = document.getElementById("siri-rec-content");
       if (recContent && d.recommendation) {
         recContent.textContent = d.recommendation;
+      }
+
+      // Persist telemetry for instant popup hydration
+      if (chrome.storage?.local) {
+        chrome.storage.local.set({
+          latestVerdict: d,
+          latestParticipantId: d.participant_id,
+          latestTimestamp: Date.now(),
+          meetingSessionId: MEETING_SESSION_ID
+        });
       }
     }
   }
@@ -937,6 +1064,144 @@ Real-time neural deepfake & synthetic media integrity monitoring is active in th
         audio: audioB64,
         timestamp: performance.now() / 1000,
       }));
+    }
+  }
+
+
+  function updateHudTargetPills() {
+    const pillsWrap = document.getElementById("siri-pills-scroll");
+    if (!pillsWrap) return;
+
+    const modeText = document.getElementById("siri-target-mode");
+    if (modeText) {
+      modeText.textContent = selectedTargetParticipantId === "auto" ? "Auto (Alerts)" : selectedTargetParticipantId;
+    }
+
+    const uniqueParticipants = [];
+    for (const [, t] of trackers) {
+      if (!uniqueParticipants.includes(t.id)) {
+        uniqueParticipants.push(t.id);
+      }
+    }
+
+    // Auto pill
+    let html = `<button type="button" class="siri-target-pill ${selectedTargetParticipantId === 'auto' ? 'active' : ''}" data-target="auto">
+      <span class="pill-dot auto"></span>Auto (Alerts)
+    </button>`;
+
+    uniqueParticipants.forEach((pid) => {
+      const v = participantVerdicts.get(pid);
+      const level = (v?.threat_level || "clear").toLowerCase();
+      const isActive = selectedTargetParticipantId === pid;
+      html += `<button type="button" class="siri-target-pill ${isActive ? 'active' : ''}" data-target="${pid}">
+        <span class="pill-dot ${level}"></span>${pid}
+      </button>`;
+    });
+
+    pillsWrap.innerHTML = html;
+
+    // Attach click listeners to pills
+    pillsWrap.querySelectorAll(".siri-target-pill").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const targetId = btn.getAttribute("data-target");
+        selectedTargetParticipantId = targetId;
+        updateHudTargetPills();
+
+        if (targetId === "auto") {
+          if (currentAutoTarget && participantVerdicts.has(currentAutoTarget)) {
+            renderHudData(participantVerdicts.get(currentAutoTarget));
+          }
+        } else if (participantVerdicts.has(targetId)) {
+          renderHudData(participantVerdicts.get(targetId));
+        } else {
+          // Placeholder before next frame arrives
+          const pName = document.getElementById("siri-participant-name");
+          if (pName) pName.textContent = targetId;
+        }
+      });
+    });
+  }
+
+  function renderHudData(d) {
+    if (!d || !siriHudEl) return;
+    const level = (d.threat_level || "clear").toLowerCase();
+    const score = Math.min(1, Math.max(0, d.score || 0));
+    const pctVal = (score * 100).toFixed(0);
+
+    const pill = document.getElementById("siri-threat-pill");
+    if (pill) {
+      if (d.phone_detected) {
+        pill.className = "siri-threat-pill critical";
+        pill.textContent = "PHONE REPLAY";
+      } else if (d.ar_filter_detected) {
+        pill.className = "siri-threat-pill moderate";
+        pill.textContent = "AR FILTER";
+      } else {
+        pill.className = "siri-threat-pill " + level;
+        pill.textContent = d.threat_level || "CLEAR";
+      }
+    }
+
+    const pName = document.getElementById("siri-participant-name");
+    if (pName) pName.textContent = d.participant_id || "Participant";
+
+    // SVG Ring
+    const circ = 2 * Math.PI * 22;
+    const offset = circ * (1 - score);
+    const ringFill = document.getElementById("siri-ring-fill");
+    if (ringFill) {
+      ringFill.style.strokeDashoffset = offset.toFixed(1);
+      let color = "#2dd4bf";
+      if (score >= 0.82) color = "#f0605f";
+      else if (score >= 0.65) color = "#fb923c";
+      else if (score >= 0.45) color = "#f5a623";
+      else if (score >= 0.25) color = "#60a5fa";
+      else if (level === "calibrating") color = "#a78bfa";
+      ringFill.style.stroke = color;
+    }
+
+    const ringPct = document.getElementById("siri-ring-pct");
+    if (ringPct) ringPct.textContent = pctVal + "%";
+
+    // Caution Note
+    const cautionText = document.getElementById("siri-caution-text");
+    if (cautionText && d.caution_note) {
+      cautionText.textContent = d.caution_note;
+    }
+
+    // Metric Bars
+    const setMetric = (id, val) => {
+      const v = Math.min(1, Math.max(0, val || 0));
+      const p = (v * 100).toFixed(1);
+      const txt = document.getElementById("siri-v-" + id);
+      const bar = document.getElementById("siri-b-" + id);
+      if (txt) txt.textContent = p + "%";
+      if (bar) {
+        bar.style.width = p + "%";
+        if (v > 0.6) bar.style.background = "#f0605f";
+        else if (v > 0.35) bar.style.background = "#f5a623";
+        else bar.style.background = "#2dd4bf";
+      }
+    };
+    setMetric("spatial", d.p_spatial);
+    setMetric("freq", d.p_freq);
+    setMetric("temporal", d.p_temporal);
+    setMetric("liveness", d.p_liveness);
+
+    // AI Recommendation
+    const recContent = document.getElementById("siri-rec-content");
+    if (recContent && d.recommendation) {
+      recContent.textContent = d.recommendation;
+    }
+
+    // Persist telemetry for popup
+    if (chrome.storage?.local) {
+      chrome.storage.local.set({
+        latestVerdict: d,
+        latestParticipantId: d.participant_id,
+        latestTimestamp: Date.now(),
+        meetingSessionId: MEETING_SESSION_ID
+      });
     }
   }
 

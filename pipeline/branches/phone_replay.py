@@ -5,15 +5,16 @@ Identifies Presentation Attacks / Display Replays where an attacker holds up a
 physical smartphone, tablet, or external display screen in front of the camera
 to stream pre-recorded or deepfaked videos.
 
-Multi-Layered Detection Architecture:
-  1. Deep Neural Object Detection: COCO cell phone (class 77) / screen detection.
-  2. Screen Bezel & Display Geometry: High-contrast rectangular contour detection
-     with smartphone aspect ratios (1.6 to 2.5) enclosing the face.
-  3. High-Frequency Moiré & Glass Reflection: Spectral analysis detecting digital
-     LCD/OLED sub-pixel grid aliasing and specular glass glare.
-
-Returns a PhoneDetectionResult containing detection flags, confidence, and
-explainable forensic rationale.
+Robustness & Anti-False-Positive Architecture:
+  1. Specular Glare & Light Spot Rejection: Lamps, light bulbs, ceiling spotlights,
+     windows, and background glare are strictly rejected via over-saturation analysis
+     (V > 240 percentage, intensity variance, gradient diffusion).
+  2. Strict Face Enclosure Requirement: A physical replay attack requires that the
+     detected face is physically positioned INSIDE the phone bezel boundary.
+     Background rectangles that do not contain the face are ignored.
+  3. Aspect Ratio Gating: Validates typical smartphone aspect ratios (1.45 to 2.45).
+  4. Moiré Grid Harmonic Isolation: Masks specular glare before computing 2D DFT
+     and requires 2D harmonic grid periodicity.
 """
 from dataclasses import dataclass
 import logging
@@ -44,7 +45,7 @@ class PhoneReplayDetector:
 
     def __init__(
         self,
-        min_confidence: float = 0.45,
+        min_confidence: float = 0.60,
         enable_neural: bool = True,
         enable_bezel_analysis: bool = True,
         enable_moire_analysis: bool = True,
@@ -76,6 +77,39 @@ class PhoneReplayDetector:
             logger.debug(f"Torchvision detection module unavailable: {e}")
             self._neural_model = None
 
+    def _is_light_source_or_glare(self, roi_bgr: np.ndarray) -> bool:
+        """
+        Identifies whether a candidate region is an active light source, lamp,
+        window, or specular glare rather than a phone display.
+        """
+        if roi_bgr is None or roi_bgr.size == 0:
+            return True
+
+        gray = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2GRAY) if len(roi_bgr.shape) == 3 else roi_bgr
+        total_pixels = gray.size
+        if total_pixels == 0:
+            return True
+
+        # 1. Saturated / blown-out white pixels (> 240)
+        saturated_count = np.sum(gray >= 240)
+        saturated_ratio = saturated_count / float(total_pixels)
+        if saturated_ratio > 0.18:
+            # Over 18% of the box is completely blown out white -> it's a light source/glare
+            return True
+
+        # 2. Mean brightness test
+        mean_val = float(np.mean(gray))
+        if mean_val > 222.0:
+            # Excessively bright overall -> light fixture or window
+            return True
+
+        # 3. Flat bright texture test (glare or solid bright blob without facial/screen structure)
+        std_val = float(np.std(gray))
+        if std_val < 10.0 and mean_val > 150.0:
+            return True
+
+        return False
+
     def detect(
         self,
         image_bgr: np.ndarray,
@@ -94,7 +128,6 @@ class PhoneReplayDetector:
         if image_bgr is None or image_bgr.size == 0:
             return PhoneDetectionResult(phone_detected=False, confidence=0.0, detection_source="CLEAR")
 
-        h, w = image_bgr.shape[:2]
         phone_scores = []
         sources = []
         best_bbox = None
@@ -104,18 +137,17 @@ class PhoneReplayDetector:
         # ── 1. Geometric Screen Bezel & Display Contour Analysis ──
         if self.enable_bezel_analysis:
             bezel_detected, bezel_conf, b_bbox, enclosed = self._analyze_screen_bezel(image_bgr, face_bbox)
-            if bezel_detected:
+            if bezel_detected and enclosed:
                 phone_scores.append(bezel_conf)
                 sources.append("BEZEL_CONTOUR")
-                if b_bbox is not None:
-                    best_bbox = b_bbox
-                if enclosed:
-                    face_is_inside_phone = True
+                best_bbox = b_bbox
+                face_is_inside_phone = True
+                aspect_ratio = b_bbox[3] / max(1, b_bbox[2]) if b_bbox else 2.0
                 details_list.append(
-                    f"Physical phone/screen bezel enclosing face detected (aspect ratio ~{b_bbox[3]/max(1, b_bbox[2]):.2f} if b_bbox else 2.0)."
+                    f"Physical phone/screen bezel enclosing face detected (aspect ratio ~{aspect_ratio:.2f})."
                 )
 
-        # ── 2. Screen Sub-Pixel Moiré & Glass Reflection Analysis ──
+        # ── 2. Screen Sub-Pixel Moiré & Periodic Grid Analysis ──
         if self.enable_moire_analysis:
             moire_detected, moire_conf, moire_details = self._analyze_moire_pattern(image_bgr, face_bbox)
             if moire_detected:
@@ -135,12 +167,11 @@ class PhoneReplayDetector:
 
         # ── Decision Fusion ──
         if phone_scores:
-            # Highest confidence across signals with multi-signal bonus
             base_score = max(phone_scores)
             if len(phone_scores) > 1:
                 base_score = min(1.0, base_score + 0.10)
             if face_is_inside_phone:
-                base_score = min(1.0, base_score + 0.15)
+                base_score = min(1.0, base_score + 0.12)
 
             if base_score >= self.min_confidence:
                 source_str = "HYBRID" if len(sources) > 1 else sources[0]
@@ -158,7 +189,7 @@ class PhoneReplayDetector:
             phone_detected=False,
             confidence=0.0,
             detection_source="CLEAR",
-            details="Nominal camera stream — no phone or display screen identified."
+            details="Nominal camera stream — no physical phone or display screen identified."
         )
 
     def _analyze_screen_bezel(
@@ -168,28 +199,37 @@ class PhoneReplayDetector:
     ) -> Tuple[bool, float, Optional[Tuple[int, int, int, int]], bool]:
         """
         Detects sharp rectangular screen boundaries (bezel frames) with standard
-        smartphone aspect ratios (1.6 to 2.5) surrounding or containing the face.
+        smartphone aspect ratios (1.45 to 2.45) that strictly ENCLOSE the face.
         """
+        if face_bbox is None:
+            # Presentation replay on camera requires a face inside the display!
+            return False, 0.0, None, False
+
+        fx, fy, fw, fh = face_bbox
+        if fw <= 0 or fh <= 0:
+            return False, 0.0, None, False
+
         h, w = image_bgr.shape[:2]
         gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
 
-        # Bilateral filter to smooth face texture while keeping sharp bezel edges
-        blurred = cv2.bilateralFilter(gray, 7, 50, 50)
-        edges = cv2.Canny(blurred, 40, 130)
+        # Suppress glare blobbing by clamping saturated pixels
+        gray_clamped = np.minimum(gray, 235)
 
-        # Dilate slightly to connect smartphone bezel segments
+        blurred = cv2.bilateralFilter(gray_clamped, 7, 50, 50)
+        edges = cv2.Canny(blurred, 45, 140)
+
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         dilated = cv2.dilate(edges, kernel, iterations=1)
 
         contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         frame_area = h * w
-        min_phone_area = frame_area * 0.06   # at least 6% of the frame
-        max_phone_area = frame_area * 0.95   # at most 95% of the frame
+        face_area = fw * fh
+        min_phone_area = max(frame_area * 0.04, face_area * 1.15)
+        max_phone_area = frame_area * 0.94
 
         best_match = None
         best_conf = 0.0
-        face_enclosed = False
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
@@ -199,44 +239,50 @@ class PhoneReplayDetector:
             peri = cv2.arcLength(cnt, True)
             approx = cv2.approxPolyDP(cnt, 0.03 * peri, True)
 
-            # Look for 4-corner polygons (rectangles / rounded rectangles)
+            # 4 to 8 vertices (rectangles, rounded rectangles)
             if 4 <= len(approx) <= 8:
                 x, y, bw, bh = cv2.boundingRect(approx)
                 if bw <= 0 or bh <= 0:
+                    continue
+
+                # STRICT FACE ENCLOSURE CHECK:
+                # The phone display MUST enclose the face!
+                enclosed = (x <= fx and y <= fy and (x + bw) >= (fx + fw) and (y + bh) >= (fy + fh))
+                if not enclosed:
+                    # Check partial overlap (at least 85% of face must be inside the box)
+                    overlap_x1 = max(x, fx)
+                    overlap_y1 = max(y, fy)
+                    overlap_x2 = min(x + bw, fx + fw)
+                    overlap_y2 = min(y + bh, fy + fh)
+                    if overlap_x2 <= overlap_x1 or overlap_y2 <= overlap_y1:
+                        continue
+                    overlap_area = (overlap_x2 - overlap_x1) * (overlap_y2 - overlap_y1)
+                    if overlap_area / float(face_area) < 0.85:
+                        continue
+
+                # Light spot / lamp / specular glare rejection
+                roi = image_bgr[max(0, y):min(h, y + bh), max(0, x):min(w, x + bw)]
+                if self._is_light_source_or_glare(roi):
                     continue
 
                 aspect = float(bh) / float(bw) if bw > 0 else 0.0
                 inv_aspect = float(bw) / float(bh) if bh > 0 else 0.0
                 max_aspect = max(aspect, inv_aspect)
 
-                # Smartphone display aspect ratios are typically between 1.5 and 2.4
-                # (e.g. 16:9 = 1.77, 19.5:9 = 2.16, 20:9 = 2.22, 4:3 = 1.33)
-                is_phone_aspect = 1.45 <= max_aspect <= 2.55
+                # Smartphone display aspect ratio (1.45 to 2.45)
+                is_phone_aspect = 1.45 <= max_aspect <= 2.45
 
-                # Rectangularity score
                 rect_area = bw * bh
                 extent = float(area) / float(rect_area) if rect_area > 0 else 0.0
 
-                if is_phone_aspect and extent >= 0.72:
-                    conf = min(0.92, 0.55 + (extent * 0.30))
-
-                    # Check if face is enclosed inside this phone rectangle
-                    enclosed = False
-                    if face_bbox is not None:
-                        fx, fy, fw, fh = face_bbox
-                        # Face centers inside the phone box
-                        fcx, fcy = fx + fw // 2, fy + fh // 2
-                        if (x <= fcx <= x + bw) and (y <= fcy <= y + bh):
-                            enclosed = True
-                            conf = min(0.98, conf + 0.20)
-
+                if is_phone_aspect and extent >= 0.70:
+                    conf = min(0.96, 0.60 + (extent * 0.30))
                     if conf > best_conf:
                         best_conf = conf
                         best_match = (x, y, bw, bh)
-                        face_enclosed = enclosed
 
-        if best_match is not None and best_conf >= 0.50:
-            return True, float(best_conf), best_match, face_enclosed
+        if best_match is not None and best_conf >= 0.60:
+            return True, float(best_conf), best_match, True
 
         return False, 0.0, None, False
 
@@ -246,51 +292,54 @@ class PhoneReplayDetector:
         face_bbox: Optional[Tuple[int, int, int, int]]
     ) -> Tuple[bool, float, str]:
         """
-        Detects screen moiré grid artifacts caused by the interaction of
-        the smartphone display pixel grid and the webcam sensor matrix.
+        Detects screen moiré grid artifacts caused by digital display sub-pixel grids.
+        Strictly rejects specular highlights, flashlights, lamps, and point glare.
         """
-        h, w = image_bgr.shape[:2]
-        gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
-
-        # Focus analysis on face region or center region
-        if face_bbox is not None:
-            fx, fy, fw, fh = face_bbox
-            # Expand slightly around face
-            x1 = max(0, fx - 10)
-            y1 = max(0, fy - 10)
-            x2 = min(w, fx + fw + 10)
-            y2 = min(h, fy + fh + 10)
-            roi = gray[y1:y2, x1:x2]
-        else:
-            roi = gray
-
-        if roi.shape[0] < 40 or roi.shape[1] < 40:
+        if face_bbox is None:
             return False, 0.0, ""
 
-        # Resize ROI to standard 128x128 for DFT frequency peak analysis
-        resized = cv2.resize(roi, (128, 128)).astype(np.float32)
+        fx, fy, fw, fh = face_bbox
+        h, w = image_bgr.shape[:2]
+
+        x1 = max(0, fx)
+        y1 = max(0, fy)
+        x2 = min(w, fx + fw)
+        y2 = min(h, fy + fh)
+        roi_bgr = image_bgr[y1:y2, x1:x2]
+
+        if roi_bgr.shape[0] < 40 or roi_bgr.shape[1] < 40:
+            return False, 0.0, ""
+
+        # Reject if face region is washed out by direct light / glare
+        if self._is_light_source_or_glare(roi_bgr):
+            return False, 0.0, ""
+
+        gray = cv2.cvtColor(roi_bgr, cv2.COLOR_BGR2GRAY)
+
+        # Suppress point glare spikes in FFT: clamp pixels > 230
+        gray_clean = np.minimum(gray, 230)
+
+        # Resize to standard 128x128
+        resized = cv2.resize(gray_clean, (128, 128)).astype(np.float32)
 
         # 2D Discrete Fourier Transform
         dft = cv2.dft(resized, flags=cv2.DFT_COMPLEX_OUTPUT)
         dft_shift = np.fft.fftshift(dft)
         mag = cv2.magnitude(dft_shift[:, :, 0], dft_shift[:, :, 1])
 
-        # High-frequency band analysis (outer ring of spectrum)
+        # Mask DC and low frequency center (radius 18)
         cy, cx = 64, 64
-        # Mask out DC center
-        cv2.circle(mag, (cx, cy), 14, 0, -1)
+        cv2.circle(mag, (cx, cy), 18, 0, -1)
 
-        # Check for repetitive periodic frequency peaks (moiré grid spikes)
-        std_val = float(np.std(mag))
         mean_val = float(np.mean(mag))
+        std_val = float(np.std(mag))
         max_val = float(np.max(mag))
 
-        # Peak-to-average ratio (moiré spike index)
         spike_ratio = max_val / (mean_val + 1e-6)
 
-        # Screen displays captured on camera show distinct high spike ratios (> 18.0)
-        if spike_ratio > 22.0 and std_val > 15.0:
-            conf = min(0.92, 0.45 + (spike_ratio / 60.0))
+        # Require high spike ratio (> 32.0) and high standard deviation (> 25.0) for genuine screen moiré
+        if spike_ratio > 32.0 and std_val > 25.0:
+            conf = min(0.92, 0.52 + (spike_ratio / 80.0))
             return True, float(conf), f"Screen sub-pixel moiré pattern detected (spectral spike ratio: {spike_ratio:.1f})."
 
         return False, 0.0, ""
@@ -316,10 +365,10 @@ class PhoneReplayDetector:
             labels = predictions['labels'].cpu().numpy()
             scores = predictions['scores'].cpu().numpy()
 
-            # COCO class 77 is "cell phone" (also 72: tv, 73: laptop)
+            # COCO class 77 is "cell phone"
             for i, label in enumerate(labels):
                 score = float(scores[i])
-                if label in [77, 72, 73] and score >= 0.42:
+                if label == 77 and score >= 0.65:
                     x1, y1, x2, y2 = boxes[i]
                     bbox = (int(x1), int(y1), int(x2 - x1), int(y2 - y1))
                     return True, score, bbox

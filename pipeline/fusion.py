@@ -101,10 +101,13 @@ def default_sklearn_fusion(cfg: FusionConfig) -> FusionModelFn:
         prob = float(model.predict_proba(features.reshape(1, -1))[0, 1])
         p_spatial, p_freq, p_temporal, p_sync, jitter, pose, p_liveness = features
         # Threat lower bound: presentation attacks or blatant visual artifacts cannot be diluted
-        if p_liveness >= 0.40:
-            prob = max(prob, float(p_liveness * 0.92))
-        if p_spatial >= 0.70:
-            prob = max(prob, float(p_spatial * 0.90))
+        # Threat escalation: only override the learned model when branch signals
+        # are so extreme that the model's calibration is clearly insufficient.
+        # Thresholds raised to prevent false alarms on normal webcam faces.
+        if p_liveness >= 0.70:
+            prob = max(prob, float(p_liveness * 0.70))
+        if p_spatial >= 0.80:
+            prob = max(prob, float(p_spatial * 0.75))
         return float(np.clip(prob, 0.0, 1.0))
 
     return _fuse
@@ -137,13 +140,15 @@ def heuristic_fusion() -> FusionModelFn:
             )
 
         # Multi-Signal Threat Escalation (prevents dilution when a single branch strongly flags an attack)
+        # Thresholds calibrated conservatively: only override weighted score when
+        # branch signals are strong enough to indicate genuine attacks, not noise.
         # 1. Presentation Attack (static photo, phone screen replay, unblinking 2D plane)
-        if p_liveness >= 0.40:
-            weighted_score = max(weighted_score, float(p_liveness * 0.92))
+        if p_liveness >= 0.70:
+            weighted_score = max(weighted_score, float(p_liveness * 0.70))
 
         # 2. Strong Visual Artifacts / Diffusion Seams
-        if p_spatial >= 0.70:
-            weighted_score = max(weighted_score, float(p_spatial * 0.90))
+        if p_spatial >= 0.80:
+            weighted_score = max(weighted_score, float(p_spatial * 0.75))
 
         # 3. Audio-Visual Lip-Sync Desynchronization
         if abs(p_sync - 0.5) >= 0.05 and p_sync >= 0.75:
@@ -165,7 +170,7 @@ class _ParticipantFusionState:
     """Smoothed score and threshold-sustain timing for one participant."""
 
     def __init__(self):
-        self.smoothed_score: float = 0.0
+        self.smoothed_score: Optional[float] = None
         self.review_sustained_since: Optional[float] = None
         self.block_sustained_since: Optional[float] = None
 
@@ -233,10 +238,16 @@ class DecisionEngine:
         # Exponential smoothing
         if self.cfg.smoothing_alpha >= 0.99:
             smoothed = p_frame
-        elif state.smoothed_score == 0.0:
-            smoothed = p_frame
+        elif state.smoothed_score is None:
+            smoothed = self.cfg.smoothing_alpha * p_frame
         else:
-            smoothed = exponential_smooth(p_frame, state.smoothed_score, self.cfg.smoothing_alpha)
+            if p_frame < state.smoothed_score:
+                # Dynamic recovery alpha: decay rapidly if risk is decreasing
+                diff_ratio = 1.0 - p_frame / (state.smoothed_score + 1e-6)
+                alpha = self.cfg.smoothing_alpha + (1.0 - self.cfg.smoothing_alpha) * (diff_ratio ** 2)
+            else:
+                alpha = self.cfg.smoothing_alpha
+            smoothed = exponential_smooth(p_frame, state.smoothed_score, alpha)
 
         # Presentation Attack Immediate Confidence Escalation
         if branch_scores.phone_detected and branch_scores.phone_confidence >= 0.50:

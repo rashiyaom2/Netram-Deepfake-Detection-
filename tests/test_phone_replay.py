@@ -1,7 +1,7 @@
 """
 Tests for Stage 4d — Phone & Screen Replay Attack Detector.
 Validates nominal feeds, phone bezel presentation attacks, moiré grid patterns,
-and fusion escalation.
+glare/light-spot rejection, and fusion escalation.
 """
 import numpy as np
 import cv2
@@ -26,6 +26,40 @@ class TestPhoneReplayDetector:
         assert result.confidence < 0.45
         assert result.detection_source == "CLEAR"
 
+    def test_bright_light_spot_and_glare_not_detected_as_phone(self):
+        """Bright light sources, lamps, ceiling spots, and glare flares must NOT be flagged as phones."""
+        detector = PhoneReplayDetector()
+        img = np.full((480, 640, 3), 45, dtype=np.uint8)
+        
+        # Add normal human face
+        cv2.circle(img, (320, 240), 75, (175, 150, 130), -1)
+        
+        # Add bright light source (ceiling lamp / overhead bulb)
+        cv2.circle(img, (120, 80), 45, (255, 255, 255), -1)
+        cv2.circle(img, (120, 80), 70, (220, 230, 255), 2)
+        
+        # Add bright specular glare patch on background wall
+        cv2.rectangle(img, (480, 60), (560, 220), (250, 252, 255), -1)
+
+        result = detector.detect(img, face_bbox=(245, 165, 150, 150))
+        assert not result.phone_detected, f"Light source was falsely flagged: {result.details}"
+        assert result.confidence < 0.50
+
+    def test_background_window_and_door_not_detected_as_phone(self):
+        """Background rectangular structures (doors, windows) not enclosing the face are ignored."""
+        detector = PhoneReplayDetector()
+        img = np.full((480, 640, 3), 35, dtype=np.uint8)
+        
+        # Background door/window with smartphone-like aspect ratio 2.0 (80x160)
+        cv2.rectangle(img, (50, 50), (130, 210), (210, 210, 210), 3)
+        cv2.rectangle(img, (53, 53), (127, 207), (60, 60, 60), -1)
+
+        # Human face positioned at center (outside the background window)
+        cv2.circle(img, (340, 240), 70, (180, 160, 140), -1)
+
+        result = detector.detect(img, face_bbox=(270, 170, 140, 140))
+        assert not result.phone_detected, f"Background door was falsely flagged: {result.details}"
+
     def test_phone_bezel_enclosing_face_detected(self):
         """High-contrast rectangular smartphone bezel enclosing face triggers detection."""
         detector = PhoneReplayDetector()
@@ -37,8 +71,8 @@ class TestPhoneReplayDetector:
         cv2.rectangle(img, (px, py), (px + pw, py + ph), (10, 10, 10), -1)
         # Bright high-contrast screen bezel border
         cv2.rectangle(img, (px, py), (px + pw, py + ph), (220, 220, 220), 4)
-        # Inner screen content
-        cv2.rectangle(img, (px + 6, py + 6), (px + pw - 6, py + ph - 6), (70, 70, 70), -1)
+        # Inner screen content (natural display brightness ~80-140)
+        cv2.rectangle(img, (px + 6, py + 6), (px + pw - 6, py + ph - 6), (80, 80, 80), -1)
         # Face inside phone screen
         cv2.circle(img, (320, 240), 50, (190, 170, 150), -1)
 
@@ -55,9 +89,9 @@ class TestPhoneReplayDetector:
         
         # Generate synthetic moiré grid pattern in face region
         for y in range(160, 320, 4):
-            img[y, 240:400] = 240
+            img[y, 240:400] = 210
         for x in range(240, 400, 4):
-            img[160:320, x] = 240
+            img[160:320, x] = 210
 
         result = detector.detect(img, face_bbox=(240, 160, 160, 160))
         assert result.phone_detected
@@ -77,8 +111,9 @@ class TestPhoneReplayDetector:
         )
         
         raw_img = np.full((480, 640, 3), 30, dtype=np.uint8)
-        # Smartphone bezel
+        # Smartphone bezel (200x400)
         cv2.rectangle(raw_img, (220, 40), (420, 440), (220, 220, 220), 4)
+        cv2.rectangle(raw_img, (226, 46), (414, 434), (75, 75, 75), -1)
 
         scores = runner.run(aligned, raw_image_bgr=raw_img, face_bbox=(270, 190, 100, 100))
         assert isinstance(scores, BranchScores)
